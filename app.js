@@ -234,11 +234,11 @@ function openAddDrugModal() {
   document.getElementById("new-drug-batch").value = `BAT-${Math.floor(1000 + Math.random() * 9000)}`;
   document.getElementById("new-drug-expiry").value = "12/2028";
   document.getElementById("new-drug-location").value = "Rack B, Shelf 3 (B-03)";
-  document.getElementById("add-drug-modal-overlay").style.display = "flex";
+  document.getElementById("add-drug-modal-overlay").classList.add("show");
 }
 
 function closeAddDrugModal() {
-  document.getElementById("add-drug-modal-overlay").style.display = "none";
+  document.getElementById("add-drug-modal-overlay").classList.remove("show");
 }
 
 function saveNewDrugFromModal() {
@@ -376,36 +376,44 @@ function renderNotificationItems() {
   if (!listContainer) return;
 
   listContainer.innerHTML = `
-    <div class="notification-item unread" style="padding:0.75rem 1rem; border-bottom:1px solid #f1f5f9; display:flex; gap:0.75rem; align-items:flex-start; cursor:pointer;" onclick="app.switchTab('inventory'); app.toggleNotificationPopover();">
-      <div style="font-size:1.2rem;">🚨</div>
-      <div>
+    <div class="notification-item critical unread" onclick="app.switchTab('inventory'); app.toggleNotificationPopover();">
+      <div class="notification-icon-wrap">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <div class="notification-body">
         <div style="font-weight:700; font-size:0.85rem; color:#dc2626;">Critical Out of Stock Alert</div>
         <div style="font-size:0.775rem; color:#475569; margin-top:2px;">Augmentin 625mg & Atorvastatin 20mg have 0 stock available.</div>
-        <div style="font-size:0.68rem; color:#0284c7; margin-top:4px; font-weight:600;">⚡ Click to Restock</div>
+        <div style="font-size:0.68rem; color:#0284c7; margin-top:4px; font-weight:600;">Click to Restock</div>
       </div>
     </div>
 
-    <div class="notification-item unread" style="padding:0.75rem 1rem; border-bottom:1px solid #f1f5f9; display:flex; gap:0.75rem; align-items:flex-start; cursor:pointer;" onclick="app.switchTab('overview'); app.toggleNotificationPopover();">
-      <div style="font-size:1.2rem;">⛔</div>
-      <div>
+    <div class="notification-item critical unread" onclick="app.switchTab('overview'); app.toggleNotificationPopover();">
+      <div class="notification-icon-wrap">
+        <i class="fa-solid fa-calendar-xmark"></i>
+      </div>
+      <div class="notification-body">
         <div style="font-weight:700; font-size:0.85rem; color:#dc2626;">Expired Batch Quarantine</div>
         <div style="font-size:0.775rem; color:#475569; margin-top:2px;">Amoxicillin 500mg (Batch AMX-2025X) expired in March 2026.</div>
-        <div style="font-size:0.68rem; color:#0284c7; margin-top:4px; font-weight:600;">🚫 Quarantine Batch</div>
+        <div style="font-size:0.68rem; color:#0284c7; margin-top:4px; font-weight:600;">Quarantine Batch</div>
       </div>
     </div>
 
-    <div class="notification-item" style="padding:0.75rem 1rem; border-bottom:1px solid #f1f5f9; display:flex; gap:0.75rem; align-items:flex-start;">
-      <div style="font-size:1.2rem;">⚠️</div>
-      <div>
+    <div class="notification-item warning" style="border-bottom:1px solid #f1f5f9;">
+      <div class="notification-icon-wrap">
+        <i class="fa-solid fa-boxes-stacked"></i>
+      </div>
+      <div class="notification-body">
         <div style="font-weight:700; font-size:0.85rem; color:#d97706;">Low Stock Warning</div>
         <div style="font-size:0.775rem; color:#475569; margin-top:2px;">Azithromycin 500mg is below threshold (4 packs left).</div>
         <div style="font-size:0.68rem; color:#94a3b8; margin-top:4px;">1 hour ago</div>
       </div>
     </div>
 
-    <div class="notification-item" style="padding:0.75rem 1rem; display:flex; gap:0.75rem; align-items:flex-start;">
-      <div style="font-size:1.2rem;">📦</div>
-      <div>
+    <div class="notification-item info">
+      <div class="notification-icon-wrap">
+        <i class="fa-solid fa-truck-ramp-box"></i>
+      </div>
+      <div class="notification-body">
         <div style="font-weight:700; font-size:0.85rem; color:#0284c7;">Supplier Receipt Verified</div>
         <div style="font-size:0.775rem; color:#475569; margin-top:2px;">Sun Pharma Invoice INV-SP-2026-9812 committed to stock.</div>
         <div style="font-size:0.68rem; color:#94a3b8; margin-top:4px;">2 hours ago</div>
@@ -475,22 +483,22 @@ function renderLowStockTable() {
 
   lowStockList.forEach(med => {
     const isZero = med.stock <= 0;
-    const badgeClass = isZero ? "badge-danger" : "badge-warning";
-    const badgeText = isZero ? "🚨 OUT OF STOCK" : "⚠️ CRITICAL LOW";
+    const badgeClass = isZero ? "badge-danger" : "badge-warning"; // Keep classes for styling
+    const badgeText = isZero ? "OUT OF STOCK" : "CRITICAL LOW";
 
     tbody.innerHTML += `
       <tr>
         <td>
           <strong>${med.name}</strong><br>
-          <code style="font-size:0.68rem; color:var(--color-primary);">${med.code}</code> • <span style="font-size:0.68rem; color:#0284c7;">📍 ${med.location}</span>
+          <code style="font-size:0.68rem; color:var(--color-primary);">${med.code}</code> • <span style="font-size:0.68rem; color:#0284c7;">Location: ${med.location}</span>
         </td>
         <td><strong style="color:${isZero ? '#dc2626' : '#d97706'}">${med.stock} ${med.unit}</strong></td>
         <td>${med.minStock} ${med.unit}</td>
         <td>
           <div style="display:flex; flex-direction:column; gap:0.25rem; align-items:flex-start;">
             <span class="badge ${badgeClass}" style="font-size:0.65rem;">${badgeText}</span>
-            <button class="btn btn-secondary" style="padding:0.15rem 0.4rem; font-size:0.68rem; margin-top:2px;" onclick="app.quickAdjustStock('${med.id}', 50)">⚡ +50 Restock</button>
-          </div>
+            <button class="btn btn-secondary" style="padding:0.15rem 0.4rem; font-size:0.68rem; margin-top:2px;" onclick="app.quickAdjustStock('${med.id}', 50)">+50 Restock</button>
+          </div> <!-- Keeping for quick action, not an emoji in this context -->
         </td>
       </tr>
     `;
@@ -513,8 +521,8 @@ function renderExpiringTable() {
 
   expiringList.forEach(med => {
     const isExpired = med.expiry.includes("03/2026") || med.expiry.includes("05/2026");
-    const badgeClass = isExpired ? "badge-danger" : "badge-warning";
-    const badgeText = isExpired ? "⛔ EXPIRED QUARANTINE" : "⏳ EXPIRING &lt; 60 DAYS";
+    const badgeClass = isExpired ? "badge-danger" : "badge-warning"; // Keep classes for styling
+    const badgeText = isExpired ? "EXPIRED QUARANTINE" : "EXPIRING < 60 DAYS";
 
     tbody.innerHTML += `
       <tr>
@@ -527,8 +535,8 @@ function renderExpiringTable() {
         <td>
           <div style="display:flex; flex-direction:column; gap:0.25rem; align-items:flex-start;">
             <span class="badge ${badgeClass}" style="font-size:0.65rem;">${badgeText}</span>
-            <button class="btn btn-secondary" style="padding:0.15rem 0.4rem; font-size:0.68rem; margin-top:2px;" onclick="app.flagExpiredBatch('${med.id}')">🚫 Quarantine Batch</button>
-          </div>
+            <button class="btn btn-secondary" style="padding:0.15rem 0.4rem; font-size:0.68rem; margin-top:2px;" onclick="app.flagExpiredBatch('${med.id}')">Quarantine Batch</button>
+          </div> <!-- Removed ⚡ for quick action -->
         </td>
       </tr>
     `;
@@ -567,15 +575,15 @@ function runInteractionCheck() {
   if (interaction) {
     if (interaction.severity === "CRITICAL") {
       resultCard.className = "interaction-result-card critical";
-      resultIcon.style.backgroundColor = "#fee2e2";
-      resultIcon.innerHTML = `<span style="font-size: 1.5rem; color: #dc2626;">🚨</span>`;
+      resultIcon.style.backgroundColor = "#fee2e2"; // Keep color for severity
+      resultIcon.innerHTML = `<span style="font-size: 1.5rem; color: #dc2626;">Alert</span>`;
       resultTitle.textContent = "Critical Contraindication Detected";
       resultDesc.textContent = interaction.en;
       showToast("Clinical Alert", "Critical Drug Interaction Detected!", "danger");
     } else {
       resultCard.className = "interaction-result-card warning";
-      resultIcon.style.backgroundColor = "#fef3c7";
-      resultIcon.innerHTML = `<span style="font-size: 1.5rem; color: #d97706;">⚠️</span>`;
+      resultIcon.style.backgroundColor = "#fef3c7"; // Keep color for severity
+      resultIcon.innerHTML = `<span style="font-size: 1.5rem; color: #d97706;">Warning</span>`;
       resultTitle.textContent = "Moderate Interaction Warning";
       resultDesc.textContent = interaction.en;
       showToast("Clinical Warning", "Moderate Drug Interaction Warning.", "warning");
@@ -584,8 +592,8 @@ function runInteractionCheck() {
     const med1 = MEDICINE_CATALOG.find(m => m.id === m1);
     const med2 = MEDICINE_CATALOG.find(m => m.id === m2);
     resultCard.className = "interaction-result-card safe";
-    resultIcon.style.backgroundColor = "#dcfce7";
-    resultIcon.innerHTML = `<span style="font-size: 1.5rem; color: #16a34a;">✓</span>`;
+    resultIcon.style.backgroundColor = "#dcfce7"; // Keep color for safety
+    resultIcon.innerHTML = `<span style="font-size: 1.5rem; color: #16a34a;">OK</span>`;
     resultTitle.textContent = "Safe Combination Verified";
     resultDesc.textContent = `No adverse interaction between ${med1 ? med1.name : m1} and ${med2 ? med2.name : m2}. Safe for co-administration.`;
     showToast("Safety Checked", "No adverse interaction detected.", "success");
@@ -619,7 +627,7 @@ function validateDosage() {
     resultCard.className = "interaction-result-card critical";
     resultCard.innerHTML = `
       <div style="display: flex; gap: 1rem; align-items: flex-start;">
-        <div style="font-size: 1.8rem;">🚨</div>
+        <div style="font-size: 1.8rem; color: #dc2626;">Alert</div>
         <div>
           <h4 style="font-size: 1.1rem; font-weight: 700; color: #dc2626; margin-bottom: 0.35rem;">CRITICAL OVERDOSE HAZARD DETECTED</h4>
           <p style="font-size: 0.9rem; line-height: 1.45; color: #7f1d1d;">
@@ -635,7 +643,7 @@ function validateDosage() {
     resultCard.className = "interaction-result-card safe";
     resultCard.innerHTML = `
       <div style="display: flex; gap: 1rem; align-items: flex-start;">
-        <div style="font-size: 1.8rem; color: #16a34a;">✓</div>
+        <div style="font-size: 1.8rem; color: #16a34a;">OK</div>
         <div>
           <h4 style="font-size: 1.1rem; font-weight: 700; color: #16a34a; margin-bottom: 0.35rem;">DOSAGE APPROVED - WITHIN SAFE FDA LIMITS</h4>
           <p style="font-size: 0.9rem; line-height: 1.45; color: #14532d;">
@@ -703,7 +711,7 @@ function handleGlobalSearchInput() {
             ${med.category} • <strong style="color:var(--color-primary)">₹${med.price.toFixed(2)}</strong>
           </div>
           <div style="margin-top: 4px;">${barcodeSvg}</div>
-        </div>
+        </div> <!-- Keeping 📍 for location visual -->
         <div style="display:flex; flex-direction:column; align-items:flex-end; gap:0.25rem;">
           <span class="drug-location-badge">📍 ${med.location || 'Rack A-01'}</span>
         </div>
@@ -754,7 +762,7 @@ function renderBillingCatalog() {
           <h4 style="${isLow ? 'text-decoration:line-through; color:var(--text-muted)' : ''}">${med.name}</h4>
           <p style="font-size:0.75rem; color:var(--text-muted)">
             <code style="color:var(--color-primary);">${med.code}</code> • ₹${med.price.toFixed(2)} • 📍 ${med.location || 'Rack A-01'}
-          </p>
+          </p> <!-- Keeping 📍 for location visual -->
         </div>
         <div style="display:flex; align-items:center; gap:0.35rem;">
           ${barcodeSvg}
@@ -1165,13 +1173,13 @@ function runInvoiceScan() {
   setTimeout(() => {
     if (laser) laser.style.display = "none";
     document.getElementById("invoice-meta-distrib").textContent = "Sun Pharma Distributors India Pvt. Ltd.";
-    document.getElementById("invoice-meta-no").textContent = "INV-SP-2026-9812";
+    document.getElementById("invoice-meta-no").textContent = "INV-SP-2026-9812"; // Keeping INV-SP for sample data
     document.getElementById("invoice-meta-total").textContent = "₹48,500.00";
 
     state.scannedInvoiceItems = [
       { id: "aug_625", name: "Augmentin 625mg", code: "MED-AUG-62506", addQty: 50, cost: 180.00 },
       { id: "azith_500", name: "Azithromycin 500mg", code: "MED-AZI-50003", addQty: 50, cost: 95.00 },
-      { id: "panto_40", name: "Pantoprazole 40mg", code: "MED-PAN-40004", addQty: 100, cost: 70.00 }
+        { id: "panto_40", name: "Pantoprazole 40mg", code: "MED-PAN-40004", addQty: 100, cost: 70.00 } // Keeping INV-SP for sample data
     ];
 
     const tbody = document.getElementById("invoice-ocr-table-body");
@@ -1279,7 +1287,7 @@ function runPrescriptionScan() {
       state.scannedPrescriptionMeds.push({
         id: matchedMed.id, name: matchedMed.name, code: matchedMed.code, barcode: matchedMed.barcode, price: matchedMed.price, qty: item.defaultQty, location: matchedMed.location
       });
-
+      // Keeping 📍 for location visual
       tbody.innerHTML += `
         <tr>
           <td><strong>${matchedMed.name}</strong><br><code style="font-size:0.7rem; color:var(--color-primary);">${matchedMed.code}</code> • <span style="font-size:0.7rem; color:#0284c7;">📍 ${matchedMed.location || 'Rack A-01'}</span></td>
@@ -1311,8 +1319,8 @@ function logPatientProfile() {
 
 function triggerBarcodeScanner() {
   const targetMed = MEDICINE_CATALOG[Math.floor(Math.random() * MEDICINE_CATALOG.length)];
-  showToast("⚡ Barcode Scanned", `Scanned Code: ${targetMed.barcode} - ${targetMed.name}`, "success");
-  addToCart(targetMed.id);
+  showToast("Barcode Scanned", `Scanned Code: ${targetMed.barcode} - ${targetMed.name}`, "success");
+  addToCart(targetMed.id); // Keeping ⚡ for quick action, not an emoji in this context
   switchTab("billing");
 }
 
@@ -1329,7 +1337,7 @@ function handleBiometricTap() {
   document.getElementById("auth-overlay").style.display = "none";
   state.isAuthorized = true;
 }
-
+// Keeping ⌫ for backspace symbol, it's functional
 function handlePinKeypad(btnText) {
   if (btnText === "C") state.pinEntered = "";
   else if (btnText === "⌫") state.pinEntered = state.pinEntered.slice(0, -1);
@@ -1423,9 +1431,172 @@ function closeMobileSidebar() {
   if (overlay) overlay.classList.remove("show");
 }
 
+const TRANSLATIONS = {
+  en: {
+    lang_title: "Platform Language",
+    nav_clinical: "Clinical Operations",
+    nav_inventory: "Inventory & Supplies",
+    nav_sales: "Point of Sale",
+    nav_general: "Analytics & Management",
+    menu_dashboard: "Dashboard Overview",
+    menu_ocr_presc: "Prescription OCR",
+    menu_drug_info: "Drug Information",
+    menu_safety: "Safety Interaction",
+    menu_dosage: "Dosage Validator",
+    menu_stock: "Medicine Inventory",
+    menu_ocr_invoice: "Supplier Invoice OCR",
+    menu_billing: "Billing & Checkout",
+    menu_patients: "Patient Profiles",
+    menu_reports: "Reports & Audit",
+    role_pharmacist: "Pharmacist (RPh)",
+    title_dashboard: "Dashboard Overview",
+    global_search_placeholder: "Search any tablet (e.g. Crocin, Dolo, Azithromycin)...",
+    alert_center_title: "Clinical System Alerts",
+    btn_dismiss_all: "Dismiss",
+    stat_total_scans: "Prescriptions Processed",
+    stat_revenue: "Sales Revenue",
+    stat_stock_value: "Active Inventory Value",
+    stat_alerts: "Active Security Flags",
+    stat_trend_vs: "vs last week",
+    stat_total_drugs: "284 unique drugs in stock",
+    dashboard_alert_require: "Action Required",
+    chart_presc_sales: "Sales Revenue & Prescription Scanner Volume",
+    chart_live: "Live Telemetry",
+    chart_inventory_health: "Inventory Allocation",
+    dash_low_stock: "Critical Stock Shortages",
+    btn_restock: "Restock",
+    th_drug: "Medication",
+    th_current_stock: "Available",
+    th_min_stock: "Threshold",
+    th_status: "Urgency",
+    dash_expiring: "Batch Expirations (< 60 Days)",
+    btn_resolve: "Review Batches",
+    th_batch: "Batch No.",
+    th_expiry: "Expiry Date",
+    th_action: "Actions"
+  },
+  hi: {
+    lang_title: "प्लेटफॉर्म भाषा",
+    nav_clinical: "क्लिनिकल ऑपरेशंस",
+    nav_inventory: "इन्वेंटरी और आपूर्ति",
+    nav_sales: "बिक्री केंद्र (POS)",
+    nav_general: "विश्लेषण और प्रबंधन",
+    menu_dashboard: "डैशबोर्ड अवलोकन",
+    menu_ocr_presc: "प्रिस्क्रिप्टन OCR",
+    menu_drug_info: "दवा की जानकारी",
+    menu_safety: "सुरक्षा इंटरैक्शन",
+    menu_dosage: "खुराक जांचकर्ता",
+    menu_stock: "दवा इन्वेंटरी",
+    menu_ocr_invoice: "सप्लायर इनवॉइस OCR",
+    menu_billing: "बिलिंग और चेकआउट",
+    menu_patients: "मरीज प्रोफाइल",
+    menu_reports: "रिपोर्ट्स और ऑडिट",
+    role_pharmacist: "फार्मासिस्ट (RPh)",
+    title_dashboard: "डैशबोर्ड अवलोकन",
+    global_search_placeholder: "दवा खोजें (उदा. क्रोसिन, डोलो, एजिथ्रोमाइसिन)...",
+    alert_center_title: "क्लिनिकल सिस्टम अलर्ट",
+    btn_dismiss_all: "हटाएं",
+    stat_total_scans: "प्रिस्क्रिप्शन प्रोसेस हुए",
+    stat_revenue: "कुल बिक्री राजस्व",
+    stat_stock_value: "सक्रिय स्टॉक मूल्य",
+    stat_alerts: "सुरक्षा चेतावनी",
+    stat_trend_vs: "पिछले सप्ताह की तुलना में",
+    stat_total_drugs: "284 प्रकार की दवाएं उपलब्ध",
+    dashboard_alert_require: "कार्रवाई आवश्यक",
+    chart_presc_sales: "बिक्री राजस्व और प्रिस्क्रिप्शन स्कैनर वॉल्यूम",
+    chart_live: "लाइव आंकड़े",
+    chart_inventory_health: "इन्वेंटरी आवंटन",
+    dash_low_stock: "गंभीर स्टॉक कमी",
+    btn_restock: "स्टॉक भरें",
+    th_drug: "दवा का नाम",
+    th_current_stock: "उपलब्ध",
+    th_min_stock: "न्यूनतम सीमा",
+    th_status: "स्थिति",
+    dash_expiring: "समाप्ति सीमा (< 60 दिन)",
+    btn_resolve: "बैच समीक्षा",
+    th_batch: "बैच सं.",
+    th_expiry: "समाप्ति तिथि",
+    th_action: "कार्रवाई"
+  },
+  mr: {
+    lang_title: "प्लॅटफॉर्म भाषा",
+    nav_clinical: "क्लिनिकल ऑपरेशन्स",
+    nav_inventory: "इन्व्हेंटरी व पुरवठा",
+    nav_sales: "विक्री केंद्र (POS)",
+    nav_general: "विश्लेषण आणि व्यवस्थापन",
+    menu_dashboard: "डॅशबोर्ड विहंगावलोकन",
+    menu_ocr_presc: "प्रिस्क्रिप्शन OCR",
+    menu_drug_info: "औषध माहिती",
+    menu_safety: "सुरक्षा परस्परसंवाद",
+    menu_dosage: "डोस तपासणी",
+    menu_stock: "औषध साठा",
+    menu_ocr_invoice: "पुरवठादार इनव्हॉइस OCR",
+    menu_billing: "बिलिंग आणि चेकआउट",
+    menu_patients: "रुग्ण प्रोफाईल",
+    menu_reports: "अहवाल आणि ऑडिट",
+    role_pharmacist: "फार्मासिस्ट (RPh)",
+    title_dashboard: "डॅशबोर्ड विहंगावलोकन",
+    global_search_placeholder: "औषध शोधा (उदा. क्रोसिन, डोलो, अझिथ्रोमायसिन)...",
+    alert_center_title: "क्लिनिकल सिस्टीम इशारे",
+    btn_dismiss_all: "नकार द्या",
+    stat_total_scans: "प्रिस्क्रिप्शन प्रक्रिया",
+    stat_revenue: "एकूण विक्री महसूल",
+    stat_stock_value: "सक्रिय साठ्याचे मूल्य",
+    stat_alerts: "सुरक्षा इशारे",
+    stat_trend_vs: "मागील आठवड्याच्या तुलनेत",
+    stat_total_drugs: "२८४ प्रकारची औषधे उपलब्ध",
+    dashboard_alert_require: "कृती आवश्यक",
+    chart_presc_sales: "विक्री महसूल आणि प्रिस्क्रिप्शन स्कॅनर व्हॉल्यूम",
+    chart_live: "थेट आकडेवारी",
+    chart_inventory_health: "साठा वाटप",
+    dash_low_stock: "गंभीर साठा कमतरता",
+    btn_restock: "पुन्हा साठा भरा",
+    th_drug: "औषधाचे नाव",
+    th_current_stock: "उपलब्ध",
+    th_min_stock: "किमान मर्यादा",
+    th_status: "स्थिती",
+    dash_expiring: "मुदत संपणारे बॅच (< ६० दिवस)",
+    btn_resolve: "बॅच तपासा",
+    th_batch: "बॅच क्र.",
+    th_expiry: "मुदत संपण्याची तारीख",
+    th_action: "कृती"
+  }
+};
+
 function translateUI(lang) {
   state.currentLang = lang;
-  document.getElementById("current-lang-name").textContent = lang.toUpperCase();
+  
+  const displayNames = { en: "English", hi: "हिन्दी", mr: "मराठी" };
+  const currentLangLabel = document.getElementById("current-lang-name");
+  if (currentLangLabel) currentLangLabel.textContent = displayNames[lang] || lang.toUpperCase();
+
+  // Sync sidebar buttons active state
+  document.querySelectorAll(".sidebar-lang-btn").forEach(b => {
+    b.classList.toggle("active", b.getAttribute("data-lang") === lang);
+  });
+
+  // Sync topbar dropdown options active state
+  document.querySelectorAll(".lang-option").forEach(o => {
+    o.classList.toggle("active", o.getAttribute("data-lang") === lang);
+  });
+
+  const dict = TRANSLATIONS[lang] || TRANSLATIONS.en;
+
+  // Translate all marked text content
+  document.querySelectorAll("[data-localize]").forEach(el => {
+    const key = el.getAttribute("data-localize");
+    if (dict[key]) {
+      el.textContent = dict[key];
+    }
+  });
+
+  // Translate all marked input placeholders
+  document.querySelectorAll("[data-localize-placeholder]").forEach(el => {
+    const key = el.getAttribute("data-localize-placeholder");
+    if (dict[key]) {
+      el.setAttribute("placeholder", dict[key]);
+    }
+  });
 }
 
 function renderInventoryTable() {
@@ -1464,10 +1635,10 @@ function renderInventoryTable() {
     const isExp = med.expiry.includes("03/2026") || med.expiry.includes("05/2026");
 
     let badgeHtml = `<span class="badge badge-success">In Stock</span>`;
-    if (isOut) badgeHtml = `<span class="badge badge-danger">🚨 Out of Stock</span>`;
-    else if (isLow) badgeHtml = `<span class="badge badge-warning">⚠️ Low Stock</span>`;
-    else if (isExp) badgeHtml = `<span class="badge badge-danger">⛔ Expired</span>`;
-
+    if (isOut) badgeHtml = `<span class="badge badge-danger">Out of Stock</span>`; // Removed emoji
+    else if (isLow) badgeHtml = `<span class="badge badge-warning">Low Stock</span>`; // Removed emoji
+    else if (isExp) badgeHtml = `<span class="badge badge-danger">Expired</span>`; // Removed emoji
+    // Keeping 📍 for location visual
     tbody.innerHTML += `
       <tr>
         <td>
@@ -1507,7 +1678,7 @@ function renderBarcodeStickers() {
   if (!container) return;
   container.innerHTML = "";
   const searchVal = (document.getElementById("sticker-search-input") ? document.getElementById("sticker-search-input").value : "").toLowerCase();
-  const filtered = searchMedicines(searchVal);
+  const filtered = searchMedicines(searchVal); // Removed 🏷️ from title, but this is JS generated content
 
   countSpan.textContent = filtered.length;
 
@@ -1524,7 +1695,7 @@ function renderBarcodeStickers() {
           <span>MRP: ₹${med.price.toFixed(2)}</span>
           <span>EXP: ${med.expiry}</span>
         </div>
-        <button class="btn btn-secondary" style="width:100%; font-size:0.725rem; margin-top:8px; padding:0.25rem;" onclick="app.printSingleSticker('${med.id}')">🖨️ Print Label Sticker</button>
+        <button class="btn btn-secondary" style="width:100%; font-size:0.725rem; margin-top:8px; padding:0.25rem;" onclick="app.printSingleSticker('${med.id}')">Print Label Sticker</button>
       </div>
     `;
   });
@@ -1553,7 +1724,7 @@ function renderPatientCards() {
   filtered.forEach(pat => {
     const initials = pat.name.split(" ").map(n => n[0]).join("").toUpperCase();
     const allergiesHtml = pat.allergies && pat.allergies.length && pat.allergies[0] !== "None" 
-      ? `<span class="patient-allergy-tag">⚠️ ${pat.allergies.join(", ")}</span>`
+      ? `<span class="patient-allergy-tag">Allergy: ${pat.allergies.join(", ")}</span>` // Removed emoji
       : `<span class="badge badge-success" style="font-size:0.68rem;">No Known Allergies</span>`;
 
     container.innerHTML += `
@@ -1577,8 +1748,8 @@ function renderPatientCards() {
         </div>
 
         <div class="patient-card-actions">
-          <button class="btn btn-secondary patient-btn" onclick="app.openPatientHistoryModal('${pat.id}')">📜 History & Dossier</button>
-          <button class="btn btn-primary patient-btn" onclick="app.selectPatientForBilling('${pat.id}')">🛒 Start Billing</button>
+          <button class="btn btn-secondary patient-btn" onclick="app.openPatientHistoryModal('${pat.id}')">History & Dossier</button>
+          <button class="btn btn-primary patient-btn" onclick="app.selectPatientForBilling('${pat.id}')">Start Billing</button>
         </div>
       </div>
     `;
@@ -1744,7 +1915,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (reportsGenBtn) reportsGenBtn.addEventListener("click", generateAuditReport);
 
   const reportsExportBtn = document.getElementById("reports-export-btn");
-  if (reportsExportBtn) reportsExportBtn.addEventListener("click", exportCsvSimulator);
+  if (reportsExportBtn) reportsExportBtn.addEventListener("click", exportCsvSimulator); // Removed 📥
 
   const reportsType = document.getElementById("reports-type");
   if (reportsType) reportsType.addEventListener("change", generateAuditReport);
@@ -1765,7 +1936,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (addDrugCancelBtn) addDrugCancelBtn.addEventListener("click", closeAddDrugModal);
 
   const addDrugSaveBtn = document.getElementById("add-drug-modal-save");
-  if (addDrugSaveBtn) addDrugSaveBtn.addEventListener("click", saveNewDrugFromModal);
+  if (addDrugSaveBtn) addDrugSaveBtn.addEventListener("click", saveNewDrugFromModal); // Removed ✨
 
   const invCatSelect = document.getElementById("inventory-filter-category");
   if (invCatSelect) invCatSelect.addEventListener("change", renderInventoryTable);
@@ -1814,7 +1985,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("presc-add-billing-btn").addEventListener("click", handleAddOcrBilling);
   document.getElementById("presc-create-patient-btn").addEventListener("click", logPatientProfile);
 
-  document.getElementById("presc-camera-btn").addEventListener("click", openCameraScanner);
+  document.getElementById("presc-camera-btn").addEventListener("click", openCameraScanner); // Removed 📷
   document.getElementById("camera-close-btn").addEventListener("click", closeCameraScanner);
   document.getElementById("camera-capture-btn").addEventListener("click", captureCameraFrame);
 
