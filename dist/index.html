@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI HealTech Dynamics - Intelligent Pharmacy Platform</title>
   <meta name="description" content="AI-Powered Pharmacy Workflow Automation & Clinical Support Portal">
-  <script type="module" crossorigin src="/assets/index-CzIWndL1.js"></script>
+  <script type="module" crossorigin src="/assets/index-C1swLTHK.js"></script>
   <link rel="stylesheet" crossorigin href="/assets/index-CL2bOCbN.css">
 </head>
 <body>
@@ -908,53 +908,51 @@
           <div class="reports-layout">
             <!-- Left selection pane -->
             <div class="glass-card" style="height: 100%;">
-              <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 1rem;" data-localize="rep_criteria">Report Criteria</h3>
+              <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-primary);" data-localize="rep_criteria">📊 Report Criteria Selector</h3>
               
               <div class="form-group">
                 <label class="form-label" data-localize="rep_type">Report Type</label>
                 <select class="form-control" id="reports-type">
-                  <option value="sales" data-localize="rep_opt_sales">Sales Revenue Audit</option>
-                  <option value="inventory" data-localize="rep_opt_inventory">Inventory Value & Expiry</option>
-                  <option value="patient" data-localize="rep_opt_patient">Patient Prescription Logs</option>
+                  <option value="sales" data-localize="rep_opt_sales">Sales Revenue & GST Audit Ledger</option>
+                  <option value="inventory" data-localize="rep_opt_inventory">Active Stock Valuation & Batch Expiry</option>
+                  <option value="patient" data-localize="rep_opt_patient">Patient Prescription Audit Logs</option>
                 </select>
               </div>
 
               <div class="form-group">
-                <label class="form-label" data-localize="rep_range">Date Range</label>
-                <select class="form-control">
+                <label class="form-label" data-localize="rep_range">Date Range Criteria</label>
+                <select class="form-control" id="reports-range">
                   <option value="today" data-localize="rep_range_today">Today (July 22, 2026)</option>
-                  <option value="7days" data-localize="rep_range_7">Last 7 Days</option>
+                  <option value="7days" selected data-localize="rep_range_7">Last 7 Days</option>
                   <option value="30days" data-localize="rep_range_30">Last 30 Days</option>
                   <option value="ytd" data-localize="rep_range_ytd">Year to Date (YTD)</option>
                 </select>
               </div>
 
-              <button class="btn btn-primary" id="reports-generate-btn" style="width: 100%; margin-top: 1rem;" data-localize="btn_gen_report">Generate Audit Report</button>
+              <div class="form-group">
+                <label class="form-label">Audit Channel Filter</label>
+                <select class="form-control" id="reports-channel">
+                  <option value="all">All Payment Channels</option>
+                  <option value="upi">UPI / PhonePe / GPay</option>
+                  <option value="card">Credit / Debit Card</option>
+                  <option value="cash">Cash Memos</option>
+                </select>
+              </div>
+
+              <button class="btn btn-primary" id="reports-gen-btn" style="width: 100%; margin-top: 1rem; font-weight:700;" data-localize="btn_gen_report">⚡ Generate Audit Report</button>
             </div>
 
             <!-- Right display pane -->
             <div class="glass-card glow-violet" style="display: flex; flex-direction: column;">
-              <div class="results-header">
-                <h3 style="font-size: 1.1rem; font-weight: 600;" id="reports-preview-title" data-localize="rep_preview">Generated Preview</h3>
-                <button class="btn btn-secondary" id="reports-export-btn" disabled style="padding: 0.4rem 0.85rem; font-size: 0.8rem;" data-localize="btn_export_csv">Export CSV</button>
+              <div class="results-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                <h3 style="font-size: 1.1rem; font-weight: 700;" id="reports-preview-title" data-localize="rep_preview">Generated Audit Report Ledger</h3>
+                <button class="btn btn-secondary" id="reports-export-btn" disabled style="padding: 0.4rem 0.85rem; font-size: 0.8rem; font-weight:700;" data-localize="btn_export_csv">📥 Export CSV</button>
               </div>
               
-              <div class="table-container" style="flex: 1; min-height: 320px;">
-                <table id="reports-table">
-                  <thead>
-                    <tr id="reports-thead-tr">
-                      <th data-localize="th_id">ID</th>
-                      <th data-localize="th_date">Date</th>
-                      <th data-localize="th_detail">Detail</th>
-                      <th data-localize="th_amount">Amount</th>
-                    </tr>
-                  </thead>
-                  <tbody id="reports-table-body">
-                    <tr>
-                      <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 4rem;" data-localize="rep_empty">Click 'Generate Audit Report' to compile current SQL data tables.</td>
-                    </tr>
-                  </tbody>
-                </table>
+              <div class="table-container" id="reports-preview-container" style="flex: 1; min-height: 320px; overflow-y:auto; background:#ffffff; border-radius:8px; border:1px solid var(--border-color);">
+                <div style="padding:3rem 1.5rem; text-align:center; color:var(--text-muted);">
+                  Select report criteria and click <strong>"Generate Audit Report"</strong> to compile live database records.
+                </div>
               </div>
             </div>
           </div>
