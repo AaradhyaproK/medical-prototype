@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI HealTech Dynamics - Intelligent Pharmacy Platform</title>
+  <meta name="description" content="AI-Powered Pharmacy Workflow Automation & Clinical Support Portal">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+  <!-- Biometric Lockscreen Overlay -->
+  <div id="auth-overlay" class="auth-overlay">
+    <div class="glass-card auth-card">
+      <img src="/logo.png" alt="AI HealTech Dynamics" style="width: 54px; height: 54px; object-fit: contain; margin: 0 auto 0.75rem; display: block;">
+      <h2 style="font-size: 1.4rem; font-weight: 800; margin-bottom: 0.5rem;" data-localize="auth_title">AI HealTech Dynamics</h2>
+      <p style="font-size: 0.85rem; color: var(--text-secondary);" data-localize="auth_subtitle">Secure Pharmacist Verification Required</p>
+      
+      <!-- Biometric Scanner Animation -->
+      <div id="auth-scanner" class="auth-icon-spin mt-4">
+        <div id="scanner-beam" class="scanner-beam-line"></div>
+        <svg class="auth-fingerprint-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 12a10 10 0 0 1 13-9.5" />
+          <path d="M5 19.5A9 9 0 0 1 12 3a9 9 0 0 1 7.7 4.5" />
+          <path d="M12 12.5a3.5 3.5 0 1 1 5 3" />
+          <path d="M9.5 16a6 6 0 0 1 2.5-9.5A6 6 0 0 1 18 13.5" />
+          <path d="M12 21a9 9 0 0 1-6.4-2.6" />
+          <path d="M12 18.5a6 6 0 0 1-3.5-1.1" />
+        </svg>
+      </div>
+      
+      <p id="auth-status" class="auth-status-text" data-localize="auth_prompt">Tap fingerprint scanner to authorize</p>
+      
+      <!-- Credentials Form -->
+      <div style="margin-top: 1.5rem; text-align: left;">
+        <div class="form-group">
+          <label class="form-label" style="font-size: 0.775rem; margin-bottom: 0.25rem;">Pharmacist ID / Username</label>
+          <input type="text" class="form-control" id="auth-username" placeholder="e.g. alex">
+        </div>
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label class="form-label" style="font-size: 0.775rem; margin-bottom: 0.25rem;">Password</label>
+          <input type="password" class="form-control" id="auth-password" placeholder="••••••••">
+        </div>
+        <button class="btn btn-primary" id="auth-login-btn" style="width: 100%; font-size: 0.85rem; height: 38px;">Verify Credentials</button>
+      </div>
+
+      <div style="margin: 1.5rem 0; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+        <span style="height: 1px; background-color: var(--border-color); flex: 1;"></span>
+        <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;" data-localize="auth_or">OR ENTER PIN</span>
+        <span style="height: 1px; background-color: var(--border-color); flex: 1;"></span>
+      </div>
+
+      <!-- PIN Code Verification display -->
+      <div class="pin-display">
+        <div class="pin-dot"></div>
+        <div class="pin-dot"></div>
+        <div class="pin-dot"></div>
+        <div class="pin-dot"></div>
+      </div>
+      
+      <!-- Keypad -->
+      <div class="keypad-grid">
+        <button class="keypad-btn">1</button>
+        <button class="keypad-btn">2</button>
+        <button class="keypad-btn">3</button>
+        <button class="keypad-btn">4</button>
+        <button class="keypad-btn">5</button>
+        <button class="keypad-btn">6</button>
+        <button class="keypad-btn">7</button>
+        <button class="keypad-btn">8</button>
+        <button class="keypad-btn">9</button>
+        <button class="keypad-btn" id="keypad-clear">C</button>
+        <button class="keypad-btn">0</button>
+        <button class="keypad-btn" id="keypad-back">⌫</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main App Wrapper -->
+  <div class="app-container">
+    
+    <!-- Left Navigation Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <img src="/logo.png" alt="AI HealTech Dynamics Logo" style="width: 36px; height: 36px; object-fit: contain;">
+        <div class="logo-text">AI HealTech <span>Dynamics</span></div>
+      </div>
+      
+      <div class="sidebar-menu">
+        <div class="menu-section-label" data-localize="nav_clinical">Clinical Operations</div>
+        
+        <div class="menu-item" data-tab="prescription-ocr">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <span data-localize="menu_ocr_presc">Prescription OCR</span>
+        </div>
+
+        <div class="menu-item" data-tab="drug-info">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+          </svg>
+          <span data-localize="menu_drug_info">AI Drug Info</span>
+        </div>
+
+        <div class="menu-item" data-tab="interaction">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+          <span data-localize="menu_safety">Safety Interaction</span>
+        </div>
+
+        <div class="menu-item" data-tab="dosage">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z" />
+          </svg>
+          <span data-localize="menu_dosage">Dosage Validator</span>
+        </div>
+
+        <div class="menu-section-label" data-localize="nav_inventory">Inventory & Supplies</div>
+
+        <div class="menu-item" data-tab="inventory">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+          </svg>
+          <span data-localize="menu_stock">Medicine Inventory</span>
+        </div>
+
+        <div class="menu-item" data-tab="invoice-ocr">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+          </svg>
+          <span data-localize="menu_ocr_invoice">Supplier Invoice OCR</span>
+        </div>
+
+        <div class="menu-item" data-tab="barcode-stickers">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M7 7h10M7 12h10m-5 5h5M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z" />
+          </svg>
+          <span>🏷️ Barcode Stickers</span>
+        </div>
+
+        <div class="menu-section-label" data-localize="nav_sales">Point of Sale</div>
+
+        <div class="menu-item" data-tab="billing">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+          </svg>
+          <span data-localize="menu_billing">Billing & Checkout</span>
+        </div>
+
+        <div class="menu-item" data-tab="patients">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+          <span data-localize="menu_patients">Patient Profiles</span>
+        </div>
+
+        <div class="menu-item" data-tab="reports">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <span data-localize="menu_reports">Reports & Audit</span>
+        </div>
+
+        <div class="menu-section-label" data-localize="nav_general">Analytics & Management</div>
+
+        <div class="menu-item" data-tab="overview">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z" />
+          </svg>
+          <span data-localize="menu_dashboard">Dashboard Overview</span>
+        </div>
+      </div>
+      
+      <!-- Pharmacist Account details -->
+      <div class="sidebar-footer">
+        <div class="user-profile-widget">
+          <div class="user-avatar">RS</div>
+          <div class="user-info">
+            <div class="user-name">Dr. Rajesh Sharma</div>
+            <div class="user-role"><span class="online-dot"></span><span data-localize="role_pharmacist">Pharmacist (RPh)</span></div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main class="main-panel">
+      
+      <!-- Top Action Bar -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <div class="page-title-wrap">
+            <h1 id="active-tab-title" data-localize="title_dashboard">Dashboard Overview</h1>
+          </div>
+        </div>
+        
+        <div class="topbar-right">
+          <!-- Global Search -->
+          <div class="search-bar">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input type="text" id="global-search-input" placeholder="Search any tablet (e.g. Crocin, Dolo, Azithromycin)..." autocomplete="off" data-localize-placeholder="global_search_placeholder">
+            <div id="global-search-dropdown" class="global-search-dropdown"></div>
+          </div>
+
+          <!-- Language Swapper -->
+          <div class="lang-selector-wrap">
+            <button class="lang-btn" id="lang-menu-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 002 2h1.5M3 12a9 9 0 1118 0 9 9 0 01-18 0z" />
+              </svg>
+              <span id="current-lang-name">English</span>
+            </button>
+            <div class="lang-dropdown" id="lang-dropdown-menu">
+              <div class="lang-option" data-lang="en">🇬🇧 English</div>
+              <div class="lang-option" data-lang="hi">🇮🇳 हिन्दी (Hindi)</div>
+              <div class="lang-option" data-lang="mr">🇮🇳 मराठी (Marathi)</div>
+              <div class="lang-option" data-lang="es">🇪🇸 Español</div>
+              <div class="lang-option" data-lang="de">🇩🇪 Deutsch</div>
+            </div>
+          </div>
+
+          <!-- Expiring & Low Stock Warning bell (Manual Popover Trigger) -->
+          <button class="notification-bell-btn" id="bell-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
+            <div class="notification-badge" id="bell-badge"></div>
+          </button>
+
+          <!-- System Locks -->
+          <button class="btn-icon" id="logout-btn" title="Lock Terminal">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          </button>
+        </div>
+      </header>
+      
+      <!-- Alerts popover drawer (Manual Popover element) -->
+      <div id="notification-popover" popover="manual">
+        <div class="popover-header">
+          <h3 data-localize="alert_center_title">Clinical System Alerts</h3>
+          <button class="popover-close-btn" id="popover-close" data-localize="btn_dismiss_all">Dismiss</button>
+        </div>
+        <div class="notification-list" id="popover-alerts-list">
+          <!-- Populated by JavaScript -->
+        </div>
+      </div>
+
+      <!-- Scrollable Tab Container -->
+      <div class="tab-content">
+        
+        <!-- ==================== TABS 11: DASHBOARD OVERVIEW ==================== -->
+        <div class="tab-page" id="overview-tab">
+          <!-- Analytics counters -->
+          <div class="dashboard-grid">
+            <div class="glass-card stat-card">
+              <div class="stat-header">
+                <span class="stat-label" data-localize="stat_total_scans">Prescriptions Processed</span>
+                <div class="stat-icon teal">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                </div>
+              </div>
+              <div class="stat-value">1,482</div>
+              <div class="stat-footer">
+                <span class="trend-up">↑ 12%</span>
+                <span data-localize="stat_trend_vs">vs last week</span>
+              </div>
+            </div>
+            
+            <div class="glass-card stat-card glow-violet">
+              <div class="stat-header">
+                <span class="stat-label" data-localize="stat_revenue">Sales Revenue</span>
+                <div class="stat-icon violet">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+              </div>
+              <div class="stat-value">₹1,43,925.00</div>
+              <div class="stat-footer">
+                <span class="trend-up">↑ 8.4%</span>
+                <span data-localize="stat_trend_vs">vs last week</span>
+              </div>
+            </div>
+
+            <div class="glass-card stat-card glow-success">
+              <div class="stat-header">
+                <span class="stat-label" data-localize="stat_stock_value">Active Inventory Value</span>
+                <div class="stat-icon emerald">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                </div>
+              </div>
+              <div class="stat-value">₹8,41,200.00</div>
+              <div class="stat-footer">
+                <span data-localize="stat_total_drugs">284 unique drugs in stock</span>
+              </div>
+            </div>
+
+            <div class="glass-card stat-card" style="border-color: rgba(244,63,94,0.25);">
+              <div class="stat-header">
+                <span class="stat-label" data-localize="stat_alerts">Active Security Flags</span>
+                <div class="stat-icon rose" style="background-color: rgba(244, 63, 94, 0.15)">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                </div>
+              </div>
+              <div class="stat-value" id="dashboard-alerts-count" style="color: var(--color-danger)">5</div>
+              <div class="stat-footer">
+                <span style="color: var(--color-danger); font-weight: 600;" data-localize="dashboard_alert_require">Action Required</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Charts -->
+          <div class="charts-grid">
+            <div class="glass-card chart-card">
+              <div class="card-title">
+                <span data-localize="chart_presc_sales">Sales Revenue & Prescription Scanner Volume</span>
+                <div class="badge badge-teal" data-localize="chart_live">Live Telemetry</div>
+              </div>
+              <div style="width: 100%; height: 230px; display: flex; align-items: center; justify-content: center;" id="sales-chart-container">
+                <!-- SVG Chart rendered by JS -->
+              </div>
+            </div>
+
+            <div class="glass-card chart-card glow-violet">
+              <div class="card-title">
+                <span data-localize="chart_inventory_health">Inventory Allocation</span>
+              </div>
+              <div style="width: 100%; height: 230px; display: flex; align-items: center; justify-content: center;" id="inventory-chart-container">
+                <!-- SVG Pie Chart rendered by JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Low stock and upcoming expiry dashboard tables -->
+          <div class="grid-2">
+            <div class="glass-card">
+              <div class="card-title">
+                <span data-localize="dash_low_stock">Critical Stock Shortages</span>
+                <button class="btn btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.75rem;" onclick="app.switchTab('inventory')" data-localize="btn_restock">Restock</button>
+              </div>
+              <div class="table-container">
+                <table>
+                  <thead>
+                    <tr>
+                      <th data-localize="th_drug">Medication</th>
+                      <th data-localize="th_current_stock">Available</th>
+                      <th data-localize="th_min_stock">Threshold</th>
+                      <th data-localize="th_status">Urgency</th>
+                    </tr>
+                  </thead>
+                  <tbody id="dash-low-stock-body">
+                    <!-- Loaded via JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="glass-card">
+              <div class="card-title">
+                <span data-localize="dash_expiring">Batch Expirations (&lt; 60 Days)</span>
+                <button class="btn btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.75rem;" onclick="app.showNotificationPopover()" data-localize="btn_resolve">Review Batches</button>
+              </div>
+              <div class="table-container">
+                <table>
+                  <thead>
+                    <tr>
+                      <th data-localize="th_drug">Medication</th>
+                      <th data-localize="th_batch">Batch No.</th>
+                      <th data-localize="th_expiry">Expiry Date</th>
+                      <th data-localize="th_action">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="dash-expiring-body">
+                    <!-- Loaded via JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== TABS 2: AI PRESCRIPTION OCR ==================== -->
+        <div class="tab-page" id="prescription-ocr-tab">
+          <div class="scanner-grid">
+            <div class="glass-card flex-between" style="flex-direction: column; min-height: 480px;">
+              <div style="width: 100%;">
+                <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem;" data-localize="ocr_presc_upload_title">Upload Scan / Image</h3>
+                <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1.5rem;" data-localize="ocr_presc_upload_desc">Select a local medical prescription image to simulate AI visual analysis</p>
+              </div>
+              
+              <!-- Drag and drop container -->
+              <div class="upload-zone" id="presc-upload-zone">
+                <div class="upload-icon" id="presc-icon-spin">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width: 28px; height: 28px;">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                  </svg>
+                </div>
+                <div id="presc-upload-prompt">
+                  <p class="upload-title" data-localize="ocr_upload_click">Drag & Drop prescription here</p>
+                  <p class="upload-desc" data-localize="ocr_upload_or">or click to load sample prescription image</p>
+                  <button class="btn btn-secondary" data-localize="btn_load_sample">Load Sample RX</button>
+                </div>
+                
+                <!-- Inside container laser scanner -->
+                <div class="preview-container" id="presc-preview-wrap" style="display: none;">
+                  <div class="laser-scanner" id="presc-laser"></div>
+                  <!-- Bounding boxes for OCR feedback -->
+                  <div class="ocr-bounding-box" id="box-presc-1" style="top: 25%; left: 20%; width: 60%; height: 18%;"></div>
+                  <div class="ocr-bounding-box" id="box-presc-2" style="top: 45%; left: 20%; width: 55%; height: 18%;"></div>
+                  <div class="ocr-bounding-box" id="box-presc-3" style="top: 65%; left: 20%; width: 65%; height: 18%;"></div>
+                  <img src="/mock_prescription.png" class="preview-image" id="presc-preview-img" alt="Prescription preview">
+                </div>
+              </div>
+              
+              <div class="flex-between mt-3" style="width: 100%; gap: 0.5rem;">
+                <button class="btn btn-secondary" id="presc-clear-btn" disabled data-localize="btn_clear">Clear</button>
+                <button class="btn btn-secondary" id="presc-camera-btn" style="border-color: var(--color-primary); color: var(--color-primary); font-weight: 600;">📷 Live Camera Scan</button>
+                <button class="btn btn-primary" id="presc-scan-btn" disabled data-localize="btn_run_ocr">Run Vision OCR Scan</button>
+              </div>
+            </div>
+
+            <!-- OCR Output Results -->
+            <div class="glass-card glow-violet" style="display: flex; flex-direction: column;">
+              <div class="results-header">
+                <h3 style="font-size: 1.1rem; font-weight: 600;" data-localize="ocr_results_title">Structured OCR Output</h3>
+                <span class="badge badge-teal" id="presc-ocr-status" data-localize="ocr_status_idle">Ready for Input</span>
+              </div>
+              
+              <div style="flex: 1; border: 1px solid var(--border-color); border-radius: 8px; background-color: #ffffff; padding: 1.25rem; overflow-y: auto;">
+                <!-- Prescription metadata -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);" id="presc-meta-wrap">
+                  <div>
+                    <label style="font-size: 0.75rem; color: var(--text-muted); display: block;" data-localize="lbl_rx_doctor">Clinic/Doctor</label>
+                    <span style="font-size: 0.875rem; font-weight: 600;" id="presc-meta-dr">-</span>
+                  </div>
+                  <div>
+                    <label style="font-size: 0.75rem; color: var(--text-muted); display: block;" data-localize="lbl_rx_date">Prescription Date</label>
+                    <span style="font-size: 0.875rem; font-weight: 600;" id="presc-meta-date">-</span>
+                  </div>
+                </div>
+
+                <div class="table-container">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th data-localize="th_drug">Medication</th>
+                        <th data-localize="th_dosage">Dosage</th>
+                        <th data-localize="th_frequency">Frequency</th>
+                        <th data-localize="th_duration">Duration</th>
+                      </tr>
+                    </thead>
+                    <tbody id="presc-ocr-table-body">
+                      <tr>
+                        <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 2rem;" data-localize="ocr_no_data">Upload and scan prescription to extract medicines</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- Add to billing console -->
+                <div style="margin-top: 1.5rem; display: none;" id="presc-actions-wrap">
+                  <div class="glass-card glow-success" style="background-color: rgba(16, 185, 129, 0.03); border-color: rgba(16, 185, 129, 0.2); padding: 1rem; margin-bottom: 1rem;">
+                    <h4 style="font-size: 0.85rem; color: var(--color-success); font-weight: 600; margin-bottom: 0.25rem;" data-localize="ocr_clinical_valid">Clinical Pre-check Passed</h4>
+                    <p style="font-size: 0.75rem; color: var(--text-secondary);" data-localize="ocr_clinical_valid_desc">All medications successfully matched with pharmacy databases. No dosage alerts triggered.</p>
+                  </div>
+                  
+                  <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+                    <button class="btn btn-secondary" id="presc-create-patient-btn" data-localize="btn_create_patient">Log Patient</button>
+                    <button class="btn btn-primary" id="presc-add-billing-btn" data-localize="btn_send_billing">Add to Billing Cart</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== TABS 3: SUPPLIER INVOICE OCR ==================== -->
+        <div class="tab-page" id="invoice-ocr-tab">
+          <div class="scanner-grid">
+            <div class="glass-card flex-between" style="flex-direction: column; min-height: 480px;">
+              <div style="width: 100%;">
+                <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem;" data-localize="ocr_invoice_upload_title">Supplier Invoice Upload</h3>
+                <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1.5rem;" data-localize="ocr_invoice_upload_desc">Select a supplier supply invoice scan to perform auto-inventory synchronization</p>
+              </div>
+              
+              <!-- Drag and drop zone -->
+              <div class="upload-zone" id="invoice-upload-zone">
+                <div class="upload-icon" id="invoice-icon-spin">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width: 28px; height: 28px;">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <div id="invoice-upload-prompt">
+                  <p class="upload-title" data-localize="ocr_invoice_click">Drag & Drop supplier invoice here</p>
+                  <p class="upload-desc" data-localize="ocr_invoice_or">or click to load sample invoice image</p>
+                  <button class="btn btn-secondary" data-localize="btn_load_sample_invoice">Load Sample Invoice</button>
+                </div>
+                
+                <div class="preview-container" id="invoice-preview-wrap" style="display: none;">
+                  <div class="laser-scanner" id="invoice-laser"></div>
+                  <!-- Bounding boxes for invoice lines -->
+                  <div class="ocr-bounding-box" id="box-inv-1" style="top: 36%; left: 8%; width: 84%; height: 6%;"></div>
+                  <div class="ocr-bounding-box" id="box-inv-2" style="top: 42%; left: 8%; width: 84%; height: 6%;"></div>
+                  <div class="ocr-bounding-box" id="box-inv-3" style="top: 48%; left: 8%; width: 84%; height: 6%;"></div>
+                  <img src="/mock_supplier_invoice.png" class="preview-image" id="invoice-preview-img" alt="Invoice preview">
+                </div>
+              </div>
+              
+              <div class="flex-between mt-3" style="width: 100%;">
+                <button class="btn btn-secondary" id="invoice-clear-btn" disabled data-localize="btn_clear">Clear</button>
+                <button class="btn btn-primary" id="invoice-scan-btn" disabled data-localize="btn_run_ocr">Run Invoice OCR</button>
+              </div>
+            </div>
+
+            <!-- Invoice OCR output table -->
+            <div class="glass-card glow-violet" style="display: flex; flex-direction: column;">
+              <div class="results-header">
+                <h3 style="font-size: 1.1rem; font-weight: 600;" data-localize="ocr_inv_extracted">Extracted Supplier Records</h3>
+                <span class="badge badge-teal" id="invoice-ocr-status" data-localize="ocr_status_idle">Ready for Input</span>
+              </div>
+              
+              <div style="flex: 1; border: 1px solid var(--border-color); border-radius: 8px; background-color: #ffffff; padding: 1.25rem; overflow-y: auto;">
+                <!-- Supplier Info -->
+                <div style="display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 0.75rem; margin-bottom: 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);" id="invoice-meta-wrap">
+                  <div>
+                    <label style="font-size: 0.75rem; color: var(--text-muted); display: block;" data-localize="lbl_inv_distrib">Distributor</label>
+                    <span style="font-size: 0.85rem; font-weight: 600;" id="invoice-meta-dist">-</span>
+                  </div>
+                  <div>
+                    <label style="font-size: 0.75rem; color: var(--text-muted); display: block;" data-localize="lbl_inv_no">Invoice #</label>
+                    <span style="font-size: 0.85rem; font-weight: 600;" id="invoice-meta-no">-</span>
+                  </div>
+                  <div>
+                    <label style="font-size: 0.75rem; color: var(--text-muted); display: block;" data-localize="lbl_inv_total">Invoice Total</label>
+                    <span style="font-size: 0.85rem; font-weight: 600; color: var(--color-primary);" id="invoice-meta-total">-</span>
+                  </div>
+                </div>
+
+                <div class="table-container">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th data-localize="th_drug">Medication</th>
+                        <th data-localize="th_pack">Pack Size</th>
+                        <th data-localize="th_qty">Qty</th>
+                        <th data-localize="th_cost">Unit Cost</th>
+                      </tr>
+                    </thead>
+                    <tbody id="invoice-ocr-table-body">
+                      <tr>
+                        <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 2rem;" data-localize="ocr_inv_no_data">Upload and scan supplier invoice to synchronize stock levels</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- Add to inventory controls -->
+                <div style="margin-top: 1.5rem; display: none;" id="invoice-actions-wrap">
+                  <div class="glass-card glow-success" style="background-color: rgba(16, 185, 129, 0.03); border-color: rgba(16, 185, 129, 0.2); padding: 1rem; margin-bottom: 1rem;">
+                    <h4 style="font-size: 0.85rem; color: var(--color-success); font-weight: 600; margin-bottom: 0.25rem;" data-localize="ocr_sync_ready">Stock Synchronize Ready</h4>
+                    <p style="font-size: 0.75rem; color: var(--text-secondary);" data-localize="ocr_sync_ready_desc">Clicking commit updates low-stock tags and auto-increments stock levels.</p>
+                  </div>
+                  
+                  <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+                    <button class="btn btn-primary" id="invoice-sync-btn" data-localize="btn_commit_inventory">Commit to Active Inventory</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== TABS 4: MEDICINE INVENTORY ==================== -->
+        <div class="tab-page" id="inventory-tab">
+          <div class="glass-card mb-3">
+            <div class="filter-row">
+              <input type="text" class="filter-input" id="inventory-search" placeholder="Search by name..." style="flex: 1;" data-localize-placeholder="inv_search_placeholder">
+              <select class="filter-select" id="inventory-filter-category">
+                <option value="All" data-localize="opt_all_categories">All Categories</option>
+                <option value="Antibiotic" data-localize="opt_cat_antibiotic">Antibiotic</option>
+                <option value="Antihypertensive" data-localize="opt_cat_antihypertensive">Antihypertensive</option>
+                <option value="Statin" data-localize="opt_cat_statin">Statin</option>
+                <option value="Antidiabetic" data-localize="opt_cat_antidiabetic">Antidiabetic</option>
+                <option value="Analgesic" data-localize="opt_cat_analgesic">Analgesic</option>
+                <option value="Anticoagulant" data-localize="opt_cat_anticoagulant">Anticoagulant</option>
+              </select>
+              <select class="filter-select" id="inventory-filter-status">
+                <option value="All" data-localize="opt_all_statuses">All Statuses</option>
+                <option value="Low Stock" data-localize="opt_status_low">Low Stock</option>
+                <option value="Expiring" data-localize="opt_status_expiring">Expiring</option>
+                <option value="Normal" data-localize="opt_status_normal">In Stock</option>
+              </select>
+              <button class="btn btn-primary" id="inv-add-medicine-btn" data-localize="btn_add_medicine">Add New Drug</button>
+            </div>
+            
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th data-localize="th_drug">Medication</th>
+                    <th data-localize="th_cat">Category</th>
+                    <th data-localize="th_stock">Stock Pack</th>
+                    <th data-localize="th_status">Status</th>
+                    <th data-localize="th_batch">Active Batch</th>
+                    <th data-localize="th_expiry">Expiry Date</th>
+                    <th data-localize="th_retail">Retail Price</th>
+                    <th data-localize="th_action">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="inventory-table-body">
+                  <!-- Generated dynamically via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== TABS 4B: BARCODE STICKER PRINTING STUDIO ==================== -->
+        <div class="tab-page" id="barcode-stickers-tab">
+          <div class="glass-card">
+            <div class="flex-between mb-3" style="align-items: center;">
+              <div>
+                <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary);">🏷️ Tablet Barcode Sticker Studio</h3>
+                <p style="font-size: 0.8rem; color: var(--text-secondary);">Clean, thermal-optimized barcode labels showing tablet name and scannable barcode only for strip & carton sticker tagging.</p>
+              </div>
+              <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <input type="text" class="filter-input" id="sticker-search-input" placeholder="Search tablet name, code..." style="width: 220px;">
+                <button class="btn btn-primary" id="sticker-print-all-btn" style="font-weight: 700;">🖨️ Print Barcode Stickers</button>
+              </div>
+            </div>
+
+            <!-- Sticker Customization Bar -->
+            <div style="background: #f8fafc; padding: 0.6rem 0.85rem; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center;">
+              <div style="display: flex; gap: 1rem; align-items: center; font-size: 0.775rem;">
+                <span style="font-weight: 700; color: var(--text-primary);">Sticker Layout:</span>
+                <label style="display: flex; align-items: center; gap: 0.3rem; cursor: pointer;">
+                  <input type="radio" name="sticker-layout-opt" value="3col" checked> 3-Column Sheet (A4)
+                </label>
+                <label style="display: flex; align-items: center; gap: 0.3rem; cursor: pointer;">
+                  <input type="radio" name="sticker-layout-opt" value="2col"> 2-Column Sheet
+                </label>
+                <label style="display: flex; align-items: center; gap: 0.3rem; cursor: pointer;">
+                  <input type="radio" name="sticker-layout-opt" value="1col"> Thermal Roll (Single Tag)
+                </label>
+              </div>
+              <div style="font-size: 0.75rem; color: #0284c7; font-weight: 600;">
+                Showing <span id="sticker-item-count">0</span> printable tablet sticker templates
+              </div>
+            </div>
+
+            <!-- Printable Sticker Cards Grid -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 1rem;" id="barcode-stickers-grid">
+              <!-- Dynamically populated sticker cards -->
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== TABS 5: BILLING & Point Of Sale ==================== -->
+        <div class="tab-page" id="billing-tab">
+          <!-- Rapid Multi-Billing Bar -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; background: #f8fafc; padding: 0.5rem 0.85rem; border-radius: 10px; border: 1px solid var(--border-color);">
+            <!-- Active Customer Draft Baskets -->
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary);">Active Bills:</span>
+              <div style="display: flex; gap: 0.35rem;" id="multi-bill-tabs">
+                <button class="btn btn-secondary active-bill-tab" id="bill-draft-tab-1" onclick="app.switchBillBasket(0)" style="font-size: 0.725rem; padding: 0.25rem 0.6rem; background: #0284c7; color: #ffffff; font-weight: 700; border-color: #0284c7;">
+                  Bill #1 <span id="bill-draft-count-1" class="badge" style="background: rgba(255,255,255,0.25); color:#fff; font-size:0.65rem; margin-left:3px;">0</span>
+                </button>
+                <button class="btn btn-secondary" id="bill-draft-tab-2" onclick="app.switchBillBasket(1)" style="font-size: 0.725rem; padding: 0.25rem 0.6rem;">
+                  Bill #2 <span id="bill-draft-count-2" class="badge" style="background: #e2e8f0; color:#334155; font-size:0.65rem; margin-left:3px;">0</span>
+                </button>
+                <button class="btn btn-secondary" id="bill-draft-tab-3" onclick="app.switchBillBasket(2)" style="font-size: 0.725rem; padding: 0.25rem 0.6rem;">
+                  Bill #3 <span id="bill-draft-count-3" class="badge" style="background: #e2e8f0; color:#334155; font-size:0.65rem; margin-left:3px;">0</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Shortcut Guide Teaser -->
+            <div style="font-size: 0.725rem; color: #0284c7; font-weight: 600; display: flex; align-items: center; gap: 0.35rem;">
+              <span>⌨️ Shortcut: Press <kbd style="background: #e0f2fe; padding: 1px 5px; border-radius: 4px; border: 1px solid #bae6fd; font-family: monospace;">Ctrl+K</kbd> to search anytime</span>
+            </div>
+          </div>
+
+          <div class="billing-split">
+            <!-- Left Panel: Medicine lookup database -->
+            <div class="glass-card">
+              <div class="glass-card flex-between mb-3" style="align-items: center;">
+              <div>
+                <h3 style="font-size: 1.1rem; font-weight: 600;" data-localize="bill_search_title">Search Medication Catalog</h3>
+                <p style="font-size: 0.8rem; color: var(--text-secondary);">Lookup by drug name, medical code, or barcode scanner</p>
+              </div>
+              <div style="display: flex; gap: 0.4rem; align-items: center;">
+                <input type="text" id="billing-search-input" class="form-control" style="width: 220px;" placeholder="Type name, code (MED-DOL-65001) or barcode..." autocomplete="off" data-localize-placeholder="bill_search_placeholder">
+                <button class="btn btn-secondary" id="billing-barcode-scan-btn" style="font-size: 0.75rem; padding: 0.4rem 0.6rem;" title="Simulate Barcode Scanner">⚡ Scan</button>
+                <button class="btn btn-secondary" id="billing-barcode-upload-btn" style="font-size: 0.75rem; padding: 0.4rem 0.6rem; border-color: var(--color-primary); color: var(--color-primary); font-weight: 600;" title="Upload Barcode Image File">📤 Upload Barcode</button>
+                <input type="file" id="billing-barcode-file-input" accept="image/*" style="display: none;">
+              </div>
+            </div>
+              
+              <!-- Quick search results list -->
+              <div style="max-height: 380px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem;" id="billing-catalog-list">
+                <!-- Dynamically loaded list cards -->
+              </div>
+            </div>
+
+            <!-- Right Panel: Active Ledger -->
+            <div class="glass-card glow-violet">
+              <div class="card-title">
+                <span data-localize="bill_cart_title">Active Pharmacy Billing</span>
+                <span class="badge badge-teal" id="cart-item-count">0 items</span>
+              </div>
+              
+              <!-- Patient selection context -->
+              <div style="background-color: rgba(255,255,255,0.02); padding: 0.75rem 1rem; border-radius: 8px; border: var(--border-glass); margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                  <label style="font-size: 0.75rem; color: var(--text-muted); display: block;" data-localize="lbl_active_patient">Active Patient Profile</label>
+                  <span style="font-weight: 600; font-size: 0.9rem;" id="billing-active-patient-name" data-localize="patient_walk_in">Walk-in Patient</span>
+                </div>
+                <button class="btn btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.75rem;" onclick="app.switchTab('patients')" data-localize="btn_link_patient">Link Patient</button>
+              </div>
+
+              <!-- Cart Item List -->
+              <div class="bill-cart-list" id="billing-cart-items">
+                <!-- Javascript populated -->
+              </div>
+              
+              <!-- Cart math calculations -->
+              <div style="border-top: 1px solid var(--border-color); padding-top: 1rem;">
+                <div class="bill-summary-row">
+                  <span data-localize="bill_subtotal">Subtotal</span>
+                  <span id="bill-subtotal-val">₹0.00</span>
+                </div>
+                <div class="bill-summary-row">
+                  <span id="bill-discount-label">Discounts (0%)</span>
+                  <span id="bill-discount-val">₹0.00</span>
+                </div>
+                <div class="bill-summary-row">
+                  <span id="bill-tax-label">Tax (5% GST)</span>
+                  <span id="bill-tax-val">₹0.00</span>
+                </div>
+                <div class="bill-summary-total">
+                  <span data-localize="bill_total">Total Due</span>
+                  <span id="bill-total-val">₹0.00</span>
+                </div>
+              </div>
+
+              <!-- Cart Tax & Discount Controls -->
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px dashed var(--border-color);">
+                <div>
+                  <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">GST Tax Rate</label>
+                  <select id="billing-gst-select" class="form-control" style="padding: 0.35rem 0.5rem; font-size: 0.8rem; font-weight: 600;">
+                    <option value="5" selected>5% GST (Standard Medicines)</option>
+                    <option value="12">12% GST (Medical Supplies)</option>
+                    <option value="18">18% GST (Equipment / Devices)</option>
+                    <option value="0">0% GST (Tax Exempt)</option>
+                  </select>
+                </div>
+                <div>
+                  <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">Discount Applied</label>
+                  <select id="billing-discount-select" class="form-control" style="padding: 0.35rem 0.5rem; font-size: 0.8rem; font-weight: 600;">
+                    <option value="0" selected>0% Discount</option>
+                    <option value="5">5% Senior / Loyalty Discount</option>
+                    <option value="10">10% Special Discount</option>
+                    <option value="15">15% Bulk Purchase Discount</option>
+                    <option value="20">20% Promotional Discount</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 1.5rem;">
+                <button class="btn btn-secondary" id="billing-clear-btn" disabled data-localize="btn_clear_bill">Clear Transaction</button>
+                <button class="btn btn-primary" id="billing-checkout-btn" disabled data-localize="btn_process_invoice">Process Checkout</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== TABS 6: PATIENT PROFILES ==================== -->
+        <div class="tab-page" id="patients-tab">
+          <div class="glass-card mb-3">
+            <div class="filter-row">
+              <input type="text" class="filter-input" id="patient-search" placeholder="Search patient database..." style="flex: 1;" data-localize-placeholder="pat_search_placeholder">
+              <button class="btn btn-primary" data-localize="btn_new_patient">Add New Patient</button>
+            </div>
+            
+            <div class="patients-list" id="patients-cards-container">
+              <!-- Dynamically populated patient cards -->
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== TABS 7: AI DRUG INFO ASSISTANT ==================== -->
+        <div class="tab-page" id="drug-info-tab">
+          <div class="glass-card">
+            <div class="chat-container">
+              <!-- Preset Prompts -->
+              <div class="chat-suggestions">
+                <span class="chat-suggestion-chip" data-query="Metformin dosage guidelines & renal constraints" data-localize="chip_metformin">Metformin clinical guidelines</span>
+                <span class="chat-suggestion-chip" data-query="Amoxicillin pediatric dosing chart" data-localize="chip_amox">Amoxicillin pediatric doses</span>
+                <span class="chat-suggestion-chip" data-query="Amlodipine side effects & patient counseling notes" data-localize="chip_amlod">Amlodipine side effects</span>
+                <span class="chat-suggestion-chip" data-query="Warfarin dietary interactions & Vitamin K warning" data-localize="chip_warfar">Warfarin & Vitamin K diets</span>
+              </div>
+              
+              <div class="chat-history" id="chat-history-container">
+                <div class="chat-bubble assistant">
+                  <p data-localize="chat_welcome">Greetings! I am the MedNovare Clinical Drug Information Assistant. You can click on the quick suggestion chips above, or search for clinical monographs, side-effects, pregnancy warnings, or pharmacokinetics for any drug in our database.</p>
+                </div>
+              </div>
+
+              <!-- Typing field -->
+              <div class="chat-input-wrap">
+                <input type="text" class="form-control" id="chat-input" placeholder="Ask AI clinical drug information assistant..." data-localize-placeholder="chat_input_placeholder">
+                <button class="btn btn-primary" id="chat-send-btn" data-localize="btn_ask">Ask AI</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== TABS 8: DRUG INTERACTION CHECKER ==================== -->
+        <div class="tab-page" id="interaction-tab">
+          <div class="glass-card">
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.5rem;" data-localize="safety_intro">Select two medications below to analyze therapeutic duplication or drug-drug contraindications instantly.</p>
+            
+            <div class="interaction-panel">
+              <div class="form-group">
+                <label class="form-label" data-localize="lbl_drug_primary">Primary Medication</label>
+                <select class="form-control" id="inter-select-1">
+                  <!-- Options generated by JS -->
+                </select>
+              </div>
+              
+              <div class="form-group">
+                <label class="form-label" data-localize="lbl_drug_secondary">Secondary Medication</label>
+                <select class="form-control" id="inter-select-2">
+                  <!-- Options generated by JS -->
+                </select>
+              </div>
+            </div>
+
+            <div style="text-align: center;">
+              <button class="btn btn-primary" id="inter-check-btn" data-localize="btn_run_safety">Analyze Drug Interaction</button>
+            </div>
+
+            <!-- Floating Warning Panels -->
+            <div class="interaction-result-card" id="interaction-result">
+              <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                <div style="width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;" id="inter-result-icon">
+                  <!-- Icon set by JS -->
+                </div>
+                <div>
+                  <h4 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.35rem;" id="inter-result-title">Critical Interaction Detected</h4>
+                  <p style="font-size: 0.9rem; line-height: 1.45; color: var(--text-primary);" id="inter-result-desc">Warfarin + Aspirin co-administration severely increases bleeding risk due to dual pharmacodynamic synergy.</p>
+                  <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid rgba(255,255,255,0.08); font-size: 0.775rem; color: var(--text-muted);" id="inter-result-meta">
+                    Clinical Source: FDA Adverse Events Database & Lexicomp Drug Safety Reference manual.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== TABS 9: DOSAGE VALIDATION ==================== -->
+        <div class="tab-page" id="dosage-tab">
+          <div class="glass-card">
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.5rem;" data-localize="dosage_intro">Validates patient dosing orders against FDA maximum daily limits to prevent accidental clinical overdosages.</p>
+            
+            <div class="grid-3">
+              <div class="form-group">
+                <label class="form-label" data-localize="lbl_drug_select">Select Medication</label>
+                <select class="form-control" id="dosage-select-drug">
+                  <!-- Loaded via JS -->
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" data-localize="lbl_single_dose">Single Dose Strength (mg)</label>
+                <input type="number" class="form-control" id="dosage-input-strength" placeholder="e.g. 1000" min="1">
+              </div>
+              <div class="form-group">
+                <label class="form-label" data-localize="lbl_frequency">Frequency (per Day)</label>
+                <select class="form-control" id="dosage-select-freq">
+                  <option value="1">QD (Once daily)</option>
+                  <option value="2">BID (Twice daily)</option>
+                  <option value="3">TID (Three times daily)</option>
+                  <option value="4">QID (Four times daily)</option>
+                  <option value="6">Q4H (Six times daily)</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 0.5rem;">
+              <button class="btn btn-primary" id="dosage-validate-btn" data-localize="btn_validate_dosage">Validate Daily Dosage</button>
+            </div>
+
+            <!-- Validation alerts -->
+            <div class="interaction-result-card" id="dosage-result" style="margin-top: 1.5rem;">
+              <!-- Javascript Populated -->
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== TABS 12: REPORTS & SALES AUDIT ==================== -->
+        <div class="tab-page" id="reports-tab">
+          <div class="reports-layout">
+            <!-- Left selection pane -->
+            <div class="glass-card" style="height: 100%;">
+              <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-primary);" data-localize="rep_criteria">📊 Report Criteria Selector</h3>
+              
+              <div class="form-group">
+                <label class="form-label" data-localize="rep_type">Report Type</label>
+                <select class="form-control" id="reports-type">
+                  <option value="sales" data-localize="rep_opt_sales">Sales Revenue & GST Audit Ledger</option>
+                  <option value="inventory" data-localize="rep_opt_inventory">Active Stock Valuation & Batch Expiry</option>
+                  <option value="patient" data-localize="rep_opt_patient">Patient Prescription Audit Logs</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" data-localize="rep_range">Date Range Criteria</label>
+                <select class="form-control" id="reports-range">
+                  <option value="today" data-localize="rep_range_today">Today (July 22, 2026)</option>
+                  <option value="7days" selected data-localize="rep_range_7">Last 7 Days</option>
+                  <option value="30days" data-localize="rep_range_30">Last 30 Days</option>
+                  <option value="ytd" data-localize="rep_range_ytd">Year to Date (YTD)</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Audit Channel Filter</label>
+                <select class="form-control" id="reports-channel">
+                  <option value="all">All Payment Channels</option>
+                  <option value="upi">UPI / PhonePe / GPay</option>
+                  <option value="card">Credit / Debit Card</option>
+                  <option value="cash">Cash Memos</option>
+                </select>
+              </div>
+
+              <button class="btn btn-primary" id="reports-gen-btn" style="width: 100%; margin-top: 1rem; font-weight:700;" data-localize="btn_gen_report">⚡ Generate Audit Report</button>
+            </div>
+
+            <!-- Right display pane -->
+            <div class="glass-card glow-violet" style="display: flex; flex-direction: column;">
+              <div class="results-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                <h3 style="font-size: 1.1rem; font-weight: 700;" id="reports-preview-title" data-localize="rep_preview">Generated Audit Report Ledger</h3>
+                <button class="btn btn-secondary" id="reports-export-btn" disabled style="padding: 0.4rem 0.85rem; font-size: 0.8rem; font-weight:700;" data-localize="btn_export_csv">📥 Export CSV</button>
+              </div>
+              
+              <div class="table-container" id="reports-preview-container" style="flex: 1; min-height: 320px; overflow-y:auto; background:#ffffff; border-radius:8px; border:1px solid var(--border-color);">
+                <div style="padding:3rem 1.5rem; text-align:center; color:var(--text-muted);">
+                  Select report criteria and click <strong>"Generate Audit Report"</strong> to compile live database records.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Printable Authentic Indian Pharmacy Tax Invoice Dialog -->
+  <div id="invoice-pdf-overlay" class="modal-overlay">
+    <div class="pdf-invoice-card" style="max-width: 720px; font-family: sans-serif;">
+      
+      <div class="pdf-invoice-header" style="background-color: #0284c7; color: #ffffff; padding: 1.25rem 1.75rem;">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <img src="/logo.png" alt="Logo" style="width: 42px; height: 42px; background: #ffffff; padding: 2px; border-radius: 6px;">
+          <div>
+            <h2 style="font-size: 1.3rem; font-weight: 800; letter-spacing: 0.5px; margin: 0;">AI HEALTECH DYNAMICS PHARMACY</h2>
+            <span style="font-size: 0.725rem; opacity: 0.9;" data-localize="pdf_sub">RETAIL PHARMACEUTICAL TAX INVOICE / CASH MEMO</span>
+          </div>
+        </div>
+        <div style="text-align: right;">
+          <h3 style="font-size: 1rem; font-weight: 700; margin: 0;" id="pdf-invoice-number">INV-2026-9048</h3>
+          <span style="font-size: 0.725rem; opacity: 0.9;" id="pdf-invoice-date">2026-07-22 08:48</span>
+        </div>
+      </div>
+      
+      <div class="pdf-invoice-body" style="padding: 1.5rem 1.75rem;">
+        
+        <!-- Pharmacy Details & License Row -->
+        <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 1.5rem; margin-bottom: 1.25rem; font-size: 0.8rem; border-bottom: 1px solid #cbd5e1; padding-bottom: 0.85rem; color: #334155;">
+          <div>
+            <strong style="color: #0f172a; font-size: 0.85rem;">STORE DETAILS:</strong><br>
+            <strong>AI HealTech Dynamics Pvt. Ltd.</strong><br>
+            750 Medical Hub, MG Road, Bengaluru, KA - 560001<br>
+            <strong>GSTIN:</strong> 29AAAAA0000A1Z5 | <strong>DL No:</strong> KA-BLR-2026-98765<br>
+            <strong>Phone:</strong> +91 80 2345 6789 / +91 98765 43210
+          </div>
+          <div style="text-align: right;">
+            <strong style="color: #0f172a; font-size: 0.85rem;">PATIENT & RX DETAILS:</strong><br>
+            Patient Name: <strong id="pdf-patient-name" style="color: #0284c7;">Walk-in Patient</strong><br>
+            Doctor: <strong id="pdf-doctor-name">Dr. Ananya Verma, MD</strong><br>
+            Payment Mode: <strong>UPI / Cash / QR Code</strong><br>
+            <span id="pdf-patient-allergies" style="color: #dc2626; font-weight: 700;"></span>
+          </div>
+        </div>
+
+        <!-- Authentic Line Items Table -->
+        <table class="pdf-table" style="width: 100%; border-collapse: collapse; margin-bottom: 1.25rem; font-size: 0.775rem;">
+          <thead>
+            <tr style="background-color: #f1f5f9; color: #334155;">
+              <th style="padding: 0.5rem; text-align: center; border: 1px solid #cbd5e1;">S.No</th>
+              <th style="padding: 0.5rem; text-align: left; border: 1px solid #cbd5e1;">Particulars / Medicine</th>
+              <th style="padding: 0.5rem; text-align: center; border: 1px solid #cbd5e1;">HSN</th>
+              <th style="padding: 0.5rem; text-align: center; border: 1px solid #cbd5e1;">Batch</th>
+              <th style="padding: 0.5rem; text-align: center; border: 1px solid #cbd5e1;">Expiry</th>
+              <th style="padding: 0.5rem; text-align: center; border: 1px solid #cbd5e1;">Qty</th>
+              <th style="padding: 0.5rem; text-align: right; border: 1px solid #cbd5e1;">MRP (₹)</th>
+              <th style="padding: 0.5rem; text-align: right; border: 1px solid #cbd5e1;">Amount (₹)</th>
+            </tr>
+          </thead>
+          <tbody id="pdf-invoice-items">
+            <!-- Dynamic rows populated via JS -->
+          </tbody>
+        </table>
+
+        <!-- Tax & Amount Breakdown Row -->
+        <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 1.5rem; align-items: start;">
+          <!-- Terms & Words -->
+          <div style="font-size: 0.75rem; color: #475569;">
+            <div style="margin-bottom: 0.5rem; padding: 0.5rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;">
+              <strong>Amount in Words:</strong><br>
+              <span id="pdf-amount-words" style="color: #0f172a; font-weight: 700;">Rupees Zero Only</span>
+            </div>
+            <p style="font-size: 0.7rem; color: #64748b; line-height: 1.3;">
+              * Terms: Goods once sold will not be taken back without original invoice. Prescribed Schedule H & H1 drugs sold strictly against registered medical practitioner's prescription.
+            </p>
+          </div>
+
+          <!-- Total Calculation -->
+          <div style="font-size: 0.8rem; border: 1px solid #cbd5e1; border-radius: 6px; padding: 0.75rem; background: #f8fafc;">
+            <div style="display: flex; justify-content: space-between; padding: 0.2rem 0;">
+              <span>Subtotal Gross:</span>
+              <span id="pdf-subtotal-gross-val">₹0.00</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 0.2rem 0; color: #16a34a;" id="pdf-discount-row">
+              <span>Discount (<span id="pdf-discount-pct">0</span>%):</span>
+              <span id="pdf-discount-val">-₹0.00</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 0.2rem 0;">
+              <span>Taxable Subtotal:</span>
+              <span id="pdf-subtotal-val">₹0.00</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 0.2rem 0;">
+              <span id="pdf-cgst-label">CGST (2.5%):</span>
+              <span id="pdf-cgst-val">₹0.00</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 0.2rem 0;">
+              <span id="pdf-sgst-label">SGST (2.5%):</span>
+              <span id="pdf-sgst-val">₹0.00</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 0.35rem 0; font-weight: 800; border-top: 1.5px solid #cbd5e1; font-size: 0.95rem; color: #0284c7; margin-top: 0.35rem;">
+              <span>Net Payable Amount:</span>
+              <span id="pdf-total-val">₹0.00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Authorized Pharmacist Signature Box -->
+        <div style="margin-top: 1.25rem; display: flex; justify-content: space-between; align-items: flex-end; padding-top: 0.75rem; border-top: 1px dashed #cbd5e1; font-size: 0.75rem; color: #475569;">
+          <div>
+            <span>Verified & Packed By: <strong>Dr. Rajesh Sharma (RPh)</strong></span>
+          </div>
+          <div style="text-align: center;">
+            <div style="height: 35px; border-bottom: 1px solid #475569; width: 160px; margin-bottom: 4px;"></div>
+            <strong>Authorized Signatory / Registered Pharmacist</strong>
+          </div>
+        </div>
+      </div>
+      
+      <div class="pdf-invoice-footer" style="padding: 1rem 1.75rem; background-color: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 0.75rem;">
+        <button class="btn btn-secondary" id="pdf-close-btn" data-localize="btn_close">Close</button>
+        <button class="btn btn-primary" id="pdf-print-btn" data-localize="btn_print">Print Tax Invoice</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live Camera Scanner Modal -->
+  <div class="auth-overlay" id="camera-modal-overlay" style="display: none; opacity: 1;">
+    <div class="auth-card" style="width: 540px; max-width: 92vw; text-align: left; padding: 1.5rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+        <h3 style="font-size: 1.1rem; font-weight: 700; margin: 0; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
+          📷 Live Camera Prescription Scanner
+        </h3>
+        <button class="btn btn-secondary" id="camera-close-btn" style="padding: 0.2rem 0.5rem;">&times;</button>
+      </div>
+
+      <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1rem;">
+        Align paper prescription or medicine box inside the scanner box below to scan drug names in real time.
+      </p>
+
+      <!-- Video Feed & Scanning Bounding Box -->
+      <div style="position: relative; width: 100%; height: 280px; background-color: #0f172a; border-radius: 12px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+        <video id="camera-video-stream" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
+        
+        <!-- Animated Scanner Frame Overlay -->
+        <div style="position: absolute; inset: 20px; border: 2px dashed #06b6d4; border-radius: 10px; box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.6); pointer-events: none;">
+          <div class="laser-scanner" style="animation-duration: 1.8s;"></div>
+        </div>
+
+        <div style="position: absolute; bottom: 12px; background: rgba(15, 23, 42, 0.75); color: #38bdf8; font-size: 0.75rem; font-weight: 600; padding: 4px 12px; border-radius: 20px; backdrop-filter: blur(4px);">
+          Target: Paper Prescription / Drug Label
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.25rem;">
+        <span style="font-size: 0.75rem; color: var(--text-muted);" id="camera-status-text">Webcam active • Ready to capture</span>
+        <button class="btn btn-primary" id="camera-capture-btn" style="padding: 0.5rem 1.25rem; font-weight: 700;">
+          📸 Capture & Run OCR
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fullscreen High-Res Barcode Enlarger Modal -->
+  <div class="auth-overlay" id="barcode-modal-overlay" style="display: none; opacity: 1; z-index: 10000;">
+    <div class="auth-card" style="width: 480px; max-width: 92vw; text-align: center; padding: 1.75rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+        <h3 style="font-size: 1.1rem; font-weight: 700; margin: 0; color: var(--text-primary);" id="barcode-modal-title">
+          Barcode Inspector
+        </h3>
+        <button class="btn btn-secondary" id="barcode-modal-close-btn" style="padding: 0.2rem 0.5rem;">&times;</button>
+      </div>
+
+      <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem;" id="barcode-modal-subtitle">
+        Scan or print official medical inventory barcode
+      </div>
+
+      <!-- High Resolution Enlarged Barcode Display Card -->
+      <div style="background-color: #ffffff; border: 2px dashed #0284c7; border-radius: 16px; padding: 1.75rem 1.25rem; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: var(--shadow-md);">
+        <div id="barcode-modal-svg-container" style="width: 100%; display: flex; justify-content: center; margin-bottom: 0.75rem;">
+          <!-- High res enlarged barcode SVG injected via JS -->
+        </div>
+        <div style="font-family: monospace; font-size: 1.1rem; font-weight: 800; color: #0f172a; letter-spacing: 2px;" id="barcode-modal-code-num">
+          890123456701
+        </div>
+        <div style="font-size: 0.75rem; color: #0284c7; font-weight: 600; margin-top: 0.5rem;" id="barcode-modal-location">
+          📍 Storage Location: Rack A, Shelf 2 (A-02)
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.25rem; gap: 0.75rem;">
+        <button class="btn btn-secondary" id="barcode-modal-print-btn" style="width: 100%; font-weight: 600;">🖨️ Print Label</button>
+        <button class="btn btn-primary" id="barcode-modal-add-cart-btn" style="width: 100%; font-weight: 700;">+ Add to Billing Cart</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Patient Billing History & Clinical Profile Modal -->
+  <div class="auth-overlay" id="patient-modal-overlay" style="display: none; opacity: 1; z-index: 10000;">
+    <div class="auth-card" style="width: 720px; max-width: 94vw; text-align: left; padding: 1.75rem; max-height: 90vh; overflow-y: auto;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+        <div>
+          <h3 style="font-size: 1.15rem; font-weight: 800; margin: 0; color: var(--text-primary);" id="pat-modal-name">
+            Aarav Patel (PAT-2026-001)
+          </h3>
+          <p style="font-size: 0.775rem; color: var(--text-secondary); margin: 2px 0 0 0;" id="pat-modal-sub">
+            48 yrs • Male • Blood Group: O+ • Doctor: Dr. Ananya Verma, MD
+          </p>
+        </div>
+        <button class="btn btn-secondary" id="pat-modal-close-btn" style="padding: 0.2rem 0.6rem;">&times;</button>
+      </div>
+
+      <!-- Clinical Information Cards -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; margin-bottom: 1.25rem;">
+        <div style="background: #f8fafc; padding: 0.6rem 0.75rem; border-radius: 8px; border: 1px solid #e2e8f0;">
+          <div style="font-size: 0.7rem; color: var(--text-muted);">Contact Details</div>
+          <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-primary);" id="pat-modal-phone">+91 98765-43210</div>
+          <div style="font-size: 0.7rem; color: var(--text-secondary);" id="pat-modal-address">Indiranagar, Bengaluru</div>
+        </div>
+        <div style="background: #f8fafc; padding: 0.6rem 0.75rem; border-radius: 8px; border: 1px solid #e2e8f0;">
+          <div style="font-size: 0.7rem; color: var(--text-muted);">Known Drug Allergies</div>
+          <div style="font-size: 0.8rem; font-weight: 700; color: #dc2626;" id="pat-modal-allergies">Penicillin Anaphylaxis</div>
+        </div>
+        <div style="background: #f8fafc; padding: 0.6rem 0.75rem; border-radius: 8px; border: 1px solid #e2e8f0;">
+          <div style="font-size: 0.7rem; color: var(--text-muted);">Active Prescriptions</div>
+          <div style="font-size: 0.8rem; font-weight: 700; color: var(--color-primary);" id="pat-modal-meds">Lisinopril 10mg QD</div>
+        </div>
+      </div>
+
+      <!-- Previous Billing Ledger Header -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+        <h4 style="font-size: 0.95rem; font-weight: 700; margin: 0; color: var(--text-primary);">
+          📜 Past Transactions & Billing Ledger History
+        </h4>
+        <button class="btn btn-primary" id="pat-modal-new-bill-btn" style="font-size: 0.75rem; padding: 0.3rem 0.75rem;">+ Create New Bill</button>
+      </div>
+
+      <!-- Billing History Table -->
+      <div class="table-container" style="border: 1px solid var(--border-color); border-radius: 8px; max-height: 280px; overflow-y: auto;">
+        <table>
+          <thead>
+            <tr style="background: #f8fafc;">
+              <th>Invoice #</th>
+              <th>Date & Time</th>
+              <th>Items Purchased</th>
+              <th>Total (₹)</th>
+              <th>Payment</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="pat-modal-bills-tbody">
+            <!-- Dynamically populated past bills -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add New Drug Formulation Modal -->
+  <div class="modal-overlay" id="add-drug-modal-overlay" style="display: none;">
+    <div class="modal-card" style="max-width: 550px;">
+      <div class="modal-header">
+        <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin: 0;">💊 Register New Formulation / Drug</h3>
+        <button class="btn-icon" id="add-drug-modal-close" style="border: none; background: none; font-size: 1.25rem; cursor: pointer;">&times;</button>
+      </div>
+
+      <div class="modal-body" style="padding: 1.25rem;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div style="grid-column: span 2;">
+            <label style="font-size: 0.775rem; font-weight: 700; color: var(--text-primary); display: block; margin-bottom: 4px;">Medication Trade Name *</label>
+            <input type="text" id="new-drug-name" class="filter-input" placeholder="e.g. Cefixime 200mg" style="width: 100%;">
+          </div>
+
+          <div>
+            <label style="font-size: 0.775rem; font-weight: 700; color: var(--text-primary); display: block; margin-bottom: 4px;">Therapeutic Category *</label>
+            <select id="new-drug-category" class="filter-select" style="width: 100%;">
+              <option value="Antibiotic">Antibiotic</option>
+              <option value="Analgesic / Antipyretic">Analgesic / Antipyretic</option>
+              <option value="Antacid / PPI">Antacid / PPI</option>
+              <option value="Antihypertensive">Antihypertensive</option>
+              <option value="Statin">Statin</option>
+              <option value="Anti-asthmatic">Anti-asthmatic</option>
+              <option value="Anticoagulant">Anticoagulant</option>
+              <option value="General Formulation">General Formulation</option>
+            </select>
+          </div>
+
+          <div>
+            <label style="font-size: 0.775rem; font-weight: 700; color: var(--text-primary); display: block; margin-bottom: 4px;">Retail Price (₹) *</label>
+            <input type="number" id="new-drug-price" class="filter-input" placeholder="145.00" value="145.00" step="0.5" style="width: 100%;">
+          </div>
+
+          <div>
+            <label style="font-size: 0.775rem; font-weight: 700; color: var(--text-primary); display: block; margin-bottom: 4px;">Opening Stock Qty *</label>
+            <input type="number" id="new-drug-stock" class="filter-input" placeholder="100" value="100" style="width: 100%;">
+          </div>
+
+          <div>
+            <label style="font-size: 0.775rem; font-weight: 700; color: var(--text-primary); display: block; margin-bottom: 4px;">Min Stock Alert Threshold</label>
+            <input type="number" id="new-drug-minstock" class="filter-input" placeholder="25" value="25" style="width: 100%;">
+          </div>
+
+          <div>
+            <label style="font-size: 0.775rem; font-weight: 700; color: var(--text-primary); display: block; margin-bottom: 4px;">Batch Number</label>
+            <input type="text" id="new-drug-batch" class="filter-input" placeholder="CEF-2026A" value="CEF-2026A" style="width: 100%;">
+          </div>
+
+          <div>
+            <label style="font-size: 0.775rem; font-weight: 700; color: var(--text-primary); display: block; margin-bottom: 4px;">Expiry Date (MM/YYYY)</label>
+            <input type="text" id="new-drug-expiry" class="filter-input" placeholder="12/2028" value="12/2028" style="width: 100%;">
+          </div>
+
+          <div style="grid-column: span 2;">
+            <label style="font-size: 0.775rem; font-weight: 700; color: var(--text-primary); display: block; margin-bottom: 4px;">Pharmacy Rack Storage Location</label>
+            <input type="text" id="new-drug-location" class="filter-input" placeholder="Rack B, Shelf 3 (B-03)" value="Rack B, Shelf 3 (B-03)" style="width: 100%;">
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.25rem;">
+          <button class="btn btn-secondary" id="add-drug-modal-cancel">Cancel</button>
+          <button class="btn btn-primary" id="add-drug-modal-save" style="font-weight: 700;">✨ Save Formulation to Catalog</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Native Popover Toast Notification Stack Container -->
+  <div class="toast-stack" id="toast-stack"></div>
+
+  <!-- Script logic loaded at the bottom -->
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
