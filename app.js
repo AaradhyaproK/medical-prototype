@@ -1334,27 +1334,63 @@ function handlePinKeypad(btnText) {
   if (btnText === "C") state.pinEntered = "";
   else if (btnText === "⌫") state.pinEntered = state.pinEntered.slice(0, -1);
   else if (state.pinEntered.length < 4) state.pinEntered += btnText;
-  if (state.pinEntered.length === 4 && state.pinEntered === "1234") {
-    showToast("Terminal Unlocked", "Access granted.", "success");
-    document.getElementById("auth-overlay").style.display = "none";
-    state.isAuthorized = true;
+  
+  updatePinDotsDisplay();
+
+  if (state.pinEntered.length === 4) {
+    if (state.pinEntered === "1234") {
+      showToast("Terminal Unlocked", "PIN Access granted.", "success");
+      document.getElementById("auth-overlay").style.display = "none";
+      state.isAuthorized = true;
+    } else {
+      showToast("Invalid PIN Code", "Please enter valid RPh PIN (1234).", "danger");
+      state.pinEntered = "";
+      setTimeout(() => updatePinDotsDisplay(), 300);
+    }
   }
 }
 
+function updatePinDotsDisplay() {
+  const dots = document.querySelectorAll(".pin-dot");
+  dots.forEach((dot, index) => {
+    dot.classList.toggle("filled", index < state.pinEntered.length);
+  });
+}
+
 function handleCredentialsLogin() {
+  const userVal = document.getElementById("auth-username") ? document.getElementById("auth-username").value.trim() : "";
+  const passVal = document.getElementById("auth-password") ? document.getElementById("auth-password").value.trim() : "";
+  
+  showToast("Terminal Unlocked", `Verified Pharmacist ${userVal || 'alex'}. Access Granted.`, "success");
   document.getElementById("auth-overlay").style.display = "none";
   state.isAuthorized = true;
 }
 
+function switchAuthTab(mode) {
+  document.querySelectorAll(".auth-tab-btn").forEach(btn => {
+    btn.classList.toggle("active", btn.getAttribute("data-mode") === mode);
+  });
+  document.querySelectorAll(".auth-section").forEach(sec => {
+    sec.classList.toggle("active", sec.id === `auth-section-${mode}`);
+  });
+}
+
 function lockTerminal() {
   state.isAuthorized = false;
+  state.pinEntered = "";
+  updatePinDotsDisplay();
   document.getElementById("auth-overlay").style.display = "flex";
 }
 
 function switchTab(tabId) {
   document.querySelectorAll(".menu-item").forEach(i => i.classList.toggle("active", i.getAttribute("data-tab") === tabId));
+  document.querySelectorAll(".mobile-nav-item").forEach(i => i.classList.toggle("active", i.getAttribute("data-tab") === tabId));
   document.querySelectorAll(".tab-page").forEach(p => p.classList.toggle("active", p.id === `${tabId}-tab`));
   state.activeTab = tabId;
+  
+  // Close mobile sidebar drawer if open
+  closeMobileSidebar();
+
   if (tabId === "overview") {
     renderSalesChart();
     renderInventoryChart();
@@ -1368,8 +1404,23 @@ function switchTab(tabId) {
   if (tabId === "reports") generateAuditReport();
   if (tabId === "billing") {
     renderBillingCatalog();
-    document.getElementById("billing-search-input").focus();
+    const bInput = document.getElementById("billing-search-input");
+    if (bInput && window.innerWidth > 768) bInput.focus();
   }
+}
+
+function openMobileSidebar() {
+  const sidebar = document.querySelector(".sidebar");
+  const overlay = document.getElementById("mobile-sidebar-overlay");
+  if (sidebar) sidebar.classList.add("mobile-open");
+  if (overlay) overlay.classList.add("show");
+}
+
+function closeMobileSidebar() {
+  const sidebar = document.querySelector(".sidebar");
+  const overlay = document.getElementById("mobile-sidebar-overlay");
+  if (sidebar) sidebar.classList.remove("mobile-open");
+  if (overlay) overlay.classList.remove("show");
 }
 
 function translateUI(lang) {
@@ -1500,13 +1551,34 @@ function renderPatientCards() {
   const filtered = PATIENT_DATABASE.filter(p => p.name.toLowerCase().includes(searchVal) || p.code.toLowerCase().includes(searchVal) || p.phone.includes(searchVal));
 
   filtered.forEach(pat => {
+    const initials = pat.name.split(" ").map(n => n[0]).join("").toUpperCase();
+    const allergiesHtml = pat.allergies && pat.allergies.length && pat.allergies[0] !== "None" 
+      ? `<span class="patient-allergy-tag">⚠️ ${pat.allergies.join(", ")}</span>`
+      : `<span class="badge badge-success" style="font-size:0.68rem;">No Known Allergies</span>`;
+
     container.innerHTML += `
       <div class="glass-card patient-card">
-        <h4>${pat.name} (${pat.code})</h4>
-        <p style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:0.5rem;">${pat.phone} • Blood: <strong style="color:#dc2626;">${pat.bloodGroup}</strong></p>
-        <div style="display:flex; gap:0.5rem; margin-top:0.75rem;">
-          <button class="btn btn-secondary" style="font-size:0.75rem;" onclick="app.openPatientHistoryModal('${pat.id}')">📜 History & Dossier</button>
-          <button class="btn btn-primary" style="font-size:0.75rem;" onclick="app.selectPatientForBilling('${pat.id}')">🛒 Start Billing</button>
+        <div class="patient-card-header">
+          <div class="patient-card-avatar">${initials}</div>
+          <div class="patient-card-details">
+            <h4>${pat.name}</h4>
+            <p>ID: <strong>${pat.code}</strong> • Age: <strong>${pat.age}</strong> (${pat.gender})</p>
+          </div>
+        </div>
+
+        <div style="font-size:0.775rem; color:var(--text-secondary); margin-bottom:0.6rem; display:flex; flex-direction:column; gap:0.25rem;">
+          <div>📞 <strong>${pat.phone}</strong></div>
+          <div>🩸 Blood Group: <strong style="color:#dc2626;">${pat.bloodGroup}</strong></div>
+          <div>👨‍⚕️ Doctor: ${pat.doctor}</div>
+        </div>
+
+        <div style="margin-bottom:0.75rem;">
+          ${allergiesHtml}
+        </div>
+
+        <div class="patient-card-actions">
+          <button class="btn btn-secondary patient-btn" onclick="app.openPatientHistoryModal('${pat.id}')">📜 History & Dossier</button>
+          <button class="btn btn-primary patient-btn" onclick="app.selectPatientForBilling('${pat.id}')">🛒 Start Billing</button>
         </div>
       </div>
     `;
@@ -1533,6 +1605,50 @@ document.addEventListener("DOMContentLoaded", () => {
       else handlePinKeypad(btn.textContent);
     });
   });
+
+  // Auth tab switcher listeners
+  document.querySelectorAll(".auth-tab-btn").forEach(btn => {
+    btn.addEventListener("click", () => switchAuthTab(btn.getAttribute("data-mode")));
+  });
+
+  // Password visibility toggle
+  const pwdToggleBtn = document.getElementById("pwd-toggle-btn");
+  if (pwdToggleBtn) {
+    pwdToggleBtn.addEventListener("click", () => {
+      const pwdInput = document.getElementById("auth-password");
+      if (pwdInput) {
+        const isPwd = pwdInput.type === "password";
+        pwdInput.type = isPwd ? "text" : "password";
+        pwdToggleBtn.textContent = isPwd ? "🙈" : "👁️";
+      }
+    });
+  }
+
+  // Mobile navigation & sidebar toggle listeners
+  const mobileToggle = document.getElementById("mobile-menu-toggle");
+  if (mobileToggle) mobileToggle.addEventListener("click", openMobileSidebar);
+
+  const mobileOverlay = document.getElementById("mobile-sidebar-overlay");
+  if (mobileOverlay) mobileOverlay.addEventListener("click", closeMobileSidebar);
+
+  const mobileSearchTrigger = document.getElementById("mobile-search-trigger");
+  if (mobileSearchTrigger) {
+    mobileSearchTrigger.addEventListener("click", () => {
+      const sBar = document.querySelector(".topbar-right .search-bar");
+      if (sBar) {
+        sBar.classList.toggle("mobile-expand");
+        if (sBar.classList.contains("mobile-expand")) {
+          const sInput = document.getElementById("global-search-input");
+          if (sInput) sInput.focus();
+        }
+      }
+    });
+  }
+
+  document.querySelectorAll(".mobile-nav-item").forEach(item => {
+    item.addEventListener("click", () => switchTab(item.getAttribute("data-tab")));
+  });
+
   document.getElementById("logout-btn").addEventListener("click", lockTerminal);
   document.querySelectorAll(".menu-item").forEach(item => {
     item.addEventListener("click", () => switchTab(item.getAttribute("data-tab")));
@@ -1546,11 +1662,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const langBtn = document.getElementById("lang-menu-btn");
   const langMenu = document.getElementById("lang-dropdown-menu");
-  langBtn.addEventListener("click", () => langMenu.classList.toggle("show"));
+  if (langBtn) langBtn.addEventListener("click", () => langMenu.classList.toggle("show"));
   document.querySelectorAll(".lang-option").forEach(opt => {
     opt.addEventListener("click", () => {
       translateUI(opt.getAttribute("data-lang"));
-      langMenu.classList.remove("show");
+      if (langMenu) langMenu.classList.remove("show");
+    });
+  });
+
+  // Sidebar language swapper buttons
+  document.querySelectorAll(".sidebar-lang-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const selectedLang = btn.getAttribute("data-lang");
+      translateUI(selectedLang);
+      document.querySelectorAll(".sidebar-lang-btn").forEach(b => {
+        b.classList.toggle("active", b.getAttribute("data-lang") === selectedLang);
+      });
+      closeMobileSidebar();
     });
   });
 
@@ -1733,6 +1861,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
 window.app = {
   switchTab,
+  switchAuthTab,
+  openMobileSidebar,
+  closeMobileSidebar,
   quickAdjustStock,
   flagExpiredBatch,
   addToCart,
