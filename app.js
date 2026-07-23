@@ -194,31 +194,60 @@ function reorderPastBill() {
   showToast("Reorder Executed", "Loaded past bill items into current checkout basket.", "success");
 }
 
-function addNewPatientPrompt() {
-  const name = prompt("Enter Patient Full Name:", "Sneha Kulkarni");
-  if (!name) return;
-  const age = prompt("Enter Patient Age:", "34");
-  const phone = prompt("Enter Contact Phone Number:", "+91 98234-56789");
-  const blood = prompt("Enter Blood Group (e.g. O+, A+, B+):", "AB+");
+function openAddPatientModal() {
+  document.getElementById("new-patient-name").value = "";
+  document.getElementById("new-patient-age").value = "34";
+  document.getElementById("new-patient-gender").value = "Female";
+  document.getElementById("new-patient-phone").value = "+91 98234-56789";
+  document.getElementById("new-patient-blood").value = "O+";
+  document.getElementById("new-patient-allergies").value = "None";
+  document.getElementById("new-patient-address").value = "Indiranagar, Bengaluru";
+  document.getElementById("add-patient-modal-overlay").classList.add("show");
+  setTimeout(() => {
+    const nameInput = document.getElementById("new-patient-name");
+    if (nameInput) nameInput.focus();
+  }, 100);
+}
+
+function closeAddPatientModal() {
+  document.getElementById("add-patient-modal-overlay").classList.remove("show");
+}
+
+function saveNewPatientFromModal() {
+  const name = document.getElementById("new-patient-name").value.trim();
+  if (!name) {
+    showToast("Input Required", "Please enter patient full name.", "warning");
+    return;
+  }
+  const age = parseInt(document.getElementById("new-patient-age").value, 10) || 30;
+  const gender = document.getElementById("new-patient-gender").value;
+  const phone = document.getElementById("new-patient-phone").value.trim() || "+91 98000-00000";
+  const bloodGroup = document.getElementById("new-patient-blood").value;
+  const allergiesInput = document.getElementById("new-patient-allergies").value.trim();
+  const address = document.getElementById("new-patient-address").value.trim() || "Bengaluru, Karnataka";
   
+  const allergies = allergiesInput ? allergiesInput.split(",").map(s => s.trim()) : ["None"];
   const patCode = `PAT-2026-00${PATIENT_DATABASE.length + 1}`;
+  
   const newPat = {
     id: `pat_${Date.now()}`,
     code: patCode,
     name: name,
-    age: parseInt(age, 10) || 30,
-    gender: "Female",
+    age: age,
+    gender: gender,
     phone: phone,
     email: `${name.toLowerCase().replace(/\s+/g, ".")}@gmail.com`,
-    address: "Bengaluru, Karnataka",
-    bloodGroup: blood || "O+",
+    address: address,
+    bloodGroup: bloodGroup,
     doctor: "Dr. Ananya Verma, MD",
-    allergies: ["None"],
+    allergies: allergies,
     activeMeds: ["Pantoprazole 40mg"]
   };
+  
   PATIENT_DATABASE.push(newPat);
+  closeAddPatientModal();
   renderPatientCards();
-  showToast("New Patient Registered", `Added ${name} (${patCode}) to clinic database.`, "success");
+  showToast("Patient Registered", `Added ${name} (${patCode}) to clinic database.`, "success");
 }
 
 // ==========================================
@@ -1945,7 +1974,16 @@ document.addEventListener("DOMContentLoaded", () => {
   if (invStatusSelect) invStatusSelect.addEventListener("change", renderInventoryTable);
 
   const addPatientBtn = document.querySelector("[data-localize='btn_new_patient']");
-  if (addPatientBtn) addPatientBtn.addEventListener("click", addNewPatientPrompt);
+  if (addPatientBtn) addPatientBtn.addEventListener("click", openAddPatientModal);
+
+  const addPatientCloseBtn = document.getElementById("add-patient-modal-close");
+  if (addPatientCloseBtn) addPatientCloseBtn.addEventListener("click", closeAddPatientModal);
+
+  const addPatientCancelBtn = document.getElementById("add-patient-modal-cancel");
+  if (addPatientCancelBtn) addPatientCancelBtn.addEventListener("click", closeAddPatientModal);
+
+  const addPatientSaveBtn = document.getElementById("add-patient-modal-save");
+  if (addPatientSaveBtn) addPatientSaveBtn.addEventListener("click", saveNewPatientFromModal);
 
   const chatSendBtn = document.getElementById("chat-send-btn");
   if (chatSendBtn) chatSendBtn.addEventListener("click", () => handleChatSubmit());
@@ -2064,7 +2102,9 @@ window.app = {
   openAddDrugModal,
   closeAddDrugModal,
   saveNewDrugFromModal,
-  addNewPatientPrompt,
+  openAddPatientModal,
+  closeAddPatientModal,
+  saveNewPatientFromModal,
   handleChatSubmit,
   searchMedicines,
   renderBillingCatalog,

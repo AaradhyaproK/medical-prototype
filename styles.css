@@ -2526,9 +2526,10 @@ tr:hover td {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(4px);
-  z-index: 1001;
+  background-color: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 10005;
   display: none;
   align-items: center;
   justify-content: center;
@@ -2537,6 +2538,136 @@ tr:hover td {
 
 .modal-overlay.show {
   display: flex;
+}
+
+/* ==========================================
+ * ENTERPRISE CLINICAL MODAL SYSTEM
+ * ========================================== */
+.clinical-modal-card {
+  width: 100%;
+  max-width: 580px;
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(226, 232, 240, 0.8);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: clinicalModalPop 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  max-height: 90vh;
+}
+
+@keyframes clinicalModalPop {
+  from { opacity: 0; transform: scale(0.96) translateY(12px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.clinical-modal-header {
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.clinical-modal-title {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.clinical-modal-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.clinical-modal-icon.icon-blue {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+.clinical-modal-icon.icon-teal {
+  background: #ccfbf1;
+  color: #0d9488;
+}
+
+.clinical-modal-title h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.clinical-modal-title p {
+  font-size: 0.775rem;
+  color: #64748b;
+  margin: 2px 0 0 0;
+}
+
+.clinical-modal-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #64748b;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.clinical-modal-close:hover,
+.clinical-modal-close:focus-visible {
+  background: #f1f5f9;
+  color: #0f172a;
+  outline: 2px solid #0284c7;
+}
+
+.clinical-modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+.modal-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.modal-form-grid .span-2 {
+  grid-column: span 2;
+}
+
+.clinical-modal-footer {
+  padding: 1rem 1.5rem;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+@media screen and (max-width: 640px) {
+  .modal-form-grid {
+    grid-template-columns: 1fr;
+  }
+  .modal-form-grid .span-2 {
+    grid-column: span 1;
+  }
+  .clinical-modal-card {
+    max-width: 100%;
+    margin: 0 0.5rem;
+  }
 }
 
 .pdf-invoice-card {
