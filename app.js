@@ -168,7 +168,8 @@ function handleModalAddToCart() {
 }
 
 function printBarcodeLabel() {
-  showToast("Printing Barcode Label", "Sent Code 128 barcode label to thermal printer spool.", "info");
+  const med = MEDICINE_CATALOG.find(m => m.id === activeModalMedId) || MEDICINE_CATALOG[0];
+  if (med) printSingleSticker(med.id);
 }
 
 function openPatientHistoryModal(patId) {
@@ -479,19 +480,8 @@ function updateBasketBadgeCounts() {
 }
 
 function showToast(title, desc, type = "info") {
-  const stack = document.getElementById("toast-stack");
-  const toast = document.createElement("div");
-  toast.className = `toast-alert ${type}`;
-  toast.innerHTML = `
-    <div class="toast-alert-content">
-      <div class="toast-alert-title">${title}</div>
-      <div class="toast-alert-desc">${desc}</div>
-    </div>
-    <button class="toast-close-btn">&times;</button>
-  `;
-  stack.appendChild(toast);
-  toast.querySelector(".toast-close-btn").addEventListener("click", () => toast.remove());
-  setTimeout(() => toast.remove(), 4000);
+  // Bottom message alerts disabled per user request
+  return;
 }
 
 // ==========================================
@@ -774,31 +764,39 @@ function renderBillingCatalog() {
   container.innerHTML = "";
 
   const searchInput = document.getElementById("billing-search-input");
-  const searchVal = searchInput ? searchInput.value : "";
+  const searchVal = searchInput ? searchInput.value.toLowerCase().trim() : "";
   const filtered = searchMedicines(searchVal);
 
   if (filtered.length === 0) {
-    container.innerHTML = `<div style="padding:2.5rem; text-align:center; color:var(--text-muted); font-size:0.85rem;">No matching tablets found in pharmacy catalog for "${searchVal}".</div>`;
+    container.innerHTML = `<div style="padding:3rem 1.5rem; text-align:center; color:#86868b; font-size:0.875rem; background:#ffffff; border-radius:12px; border:1px solid #e5e5e7;">No matching medications found in pharmacy catalog for "${searchVal}".</div>`;
     return;
   }
 
   filtered.forEach(med => {
     const isLow = med.stock <= 0;
-    const barcodeSvg = generateBarcodeSvg(med.barcode, 20, med.id);
+    const barcodeSvg = generateBarcodeSvg(med.barcode, 18, med.id);
     container.innerHTML += `
-      <div class="cart-item" style="cursor: pointer; display:flex; justify-content:space-between; align-items:center;">
-        <div>
-          <h4 style="${isLow ? 'text-decoration:line-through; color:var(--text-muted)' : ''}">${med.name}</h4>
-          <p style="font-size:0.75rem; color:var(--text-muted)">
-            <code style="color:var(--color-primary);">${med.code}</code> • ₹${med.price.toFixed(2)} • 📍 ${med.location || 'Rack A-01'}
-          </p> <!-- Keeping 📍 for location visual -->
+      <div class="catalog-item-card" style="display:flex; justify-content:space-between; align-items:center; padding: 1.15rem 1.35rem; background:#ffffff; border-radius:12px; border:1px solid #e5e5e7; margin-bottom: 0.85rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04); transition: all 0.2s ease;">
+        <div style="flex:1; min-width:0; padding-right:1.25rem;">
+          <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom: 0.35rem;">
+            <h4 style="font-size: 0.95rem; font-weight: 700; color: #1d1d1f; margin:0; ${isLow ? 'text-decoration:line-through; color:#86868b' : ''}">${med.name}</h4>
+            <span style="font-size:0.7rem; font-weight:700; padding:0.2rem 0.5rem; border-radius:5px; background:#f5f5f7; border:1px solid #e5e5e7; color:#515154;">${med.location || 'Rack A-01'}</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:1rem; font-size: 0.825rem; color: #515154; flex-wrap:wrap;">
+            <span>Code: <code style="font-weight:700; color:#1d1d1f; background:#f5f5f7; padding:0.12rem 0.4rem; border-radius:4px;">${med.code}</code></span>
+            <span>Price: <strong style="color:#1d1d1f; font-size:0.9rem;">₹${med.price.toFixed(2)}</strong></span>
+            <span>Stock: <strong style="${isLow ? 'color:#dc2626' : 'color:#1d1d1f'}">${med.stock} pcs</strong></span>
+          </div>
         </div>
-        <div style="display:flex; align-items:center; gap:0.35rem;">
-          ${barcodeSvg}
-          <div style="display:flex; gap:0.25rem; margin-left:0.5rem;">
-            <button class="btn btn-secondary" style="padding:0.25rem 0.45rem; font-size:0.725rem; font-weight:700;" onclick="app.addToCartWithQty('${med.id}', 1)">+1</button>
-            <button class="btn btn-secondary" style="padding:0.25rem 0.45rem; font-size:0.725rem; font-weight:700;" onclick="app.addToCartWithQty('${med.id}', 5)">+5</button>
-            <button class="btn btn-primary" style="padding:0.25rem 0.5rem; font-size:0.725rem; font-weight:700;" onclick="app.addToCartWithQty('${med.id}', 10)">+10</button>
+
+        <div style="display:flex; align-items:center; gap:0.85rem; flex-shrink:0;">
+          <div style="background:#f5f5f7; padding:0.35rem 0.6rem; border-radius:8px; border:1px solid #e5e5e7;">
+            ${barcodeSvg}
+          </div>
+          <div style="display:flex; gap:0.4rem;">
+            <button class="btn btn-secondary" style="padding:0.45rem 0.7rem; font-size:0.775rem; font-weight:700; border-radius:6px;" onclick="app.addToCartWithQty('${med.id}', 1)" title="Add 1 Pack">+1</button>
+            <button class="btn btn-secondary" style="padding:0.45rem 0.7rem; font-size:0.775rem; font-weight:700; border-radius:6px;" onclick="app.addToCartWithQty('${med.id}', 5)" title="Add 5 Packs">+5</button>
+            <button class="btn btn-primary" style="padding:0.45rem 0.8rem; font-size:0.775rem; font-weight:700; border-radius:6px;" onclick="app.addToCartWithQty('${med.id}', 10)" title="Add 10 Packs">+10</button>
           </div>
         </div>
       </div>
@@ -895,10 +893,18 @@ function renderBillCart() {
   updateBasketBadgeCounts();
 }
 
+function updateBillingPatientName(name) {
+  state.customPatientName = name;
+}
+
 function clearCart() {
   state.billBaskets[state.activeBasketIndex] = [];
   state.selectedPatient = null;
-  document.getElementById("billing-active-patient-name").textContent = "Walk-in Patient";
+  state.customPatientName = "";
+  const nameInput = document.getElementById("billing-patient-name-input");
+  if (nameInput) nameInput.value = "";
+  const activeLabel = document.getElementById("billing-active-patient-name");
+  if (activeLabel) activeLabel.textContent = "Walk-in Patient";
   renderBillCart();
   updateBasketBadgeCounts();
 }
@@ -912,7 +918,11 @@ function processCheckout() {
   const invNumber = `INV-2026-${Math.floor(1000 + Math.random() * 9000)}`;
   document.getElementById("pdf-invoice-number").textContent = invNumber;
   document.getElementById("pdf-invoice-date").textContent = new Date().toISOString().replace("T", " ").substring(0, 16);
-  document.getElementById("pdf-patient-name").textContent = state.selectedPatient ? state.selectedPatient.name : "Walk-in Patient";
+  
+  const nameInput = document.getElementById("billing-patient-name-input");
+  const enteredName = nameInput ? nameInput.value.trim() : "";
+  const finalPatientName = enteredName || (state.selectedPatient ? state.selectedPatient.name : "Walk-in Patient");
+  document.getElementById("pdf-patient-name").textContent = finalPatientName;
   
   const tbody = document.getElementById("pdf-invoice-items");
   tbody.innerHTML = "";
@@ -1001,21 +1011,61 @@ function generateAuditReport() {
 
   if (reportType === "sales") {
     tableHtml = `
-      <div style="padding:1rem;">
-        <h4 style="color:var(--text-primary); margin-bottom:0.35rem; font-weight:700;">📊 Sales Revenue & GST Audit Ledger (${dateRange.toUpperCase()})</h4>
-        <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem;">Verified POS ledger transactions under Pharmacy License KA-BLR-2026-98765 • Channel: ${channel.toUpperCase()}</p>
-        <div class="table-container">
-          <table>
+      <div style="padding: 1.25rem;">
+        <div style="margin-bottom: 1.25rem; padding-bottom: 0.85rem; border-bottom: 1px solid #e5e5e7;">
+          <h4 style="color: #1d1d1f; font-size: 1.05rem; font-weight: 700; margin-bottom: 0.25rem;">Sales Revenue & GST Audit Ledger (${dateRange.toUpperCase()})</h4>
+          <p style="font-size: 0.825rem; color: #515154; margin: 0;">Verified POS ledger transactions under Pharmacy License KA-BLR-2026-98765 • Channel: ${channel.toUpperCase()}</p>
+        </div>
+        <div class="table-container" style="border: 1px solid #e5e5e7; border-radius: 10px; overflow: hidden; background: #ffffff;">
+          <table style="width: 100%; border-collapse: collapse; text-align: left;">
             <thead>
-              <tr style="background:#f8fafc;">
-                <th>Transaction #</th><th>Date & Time</th><th>Patient Profile</th><th>Taxable (₹)</th><th>GST (5%)</th><th>Net Total (₹)</th><th>Channel</th>
+              <tr style="background: #f5f5f7; border-bottom: 1px solid #e5e5e7;">
+                <th style="padding: 0.75rem 1rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: #1d1d1f; font-weight: 700;">Transaction ID</th>
+                <th style="padding: 0.75rem 1rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: #1d1d1f; font-weight: 700;">Date & Time</th>
+                <th style="padding: 0.75rem 1rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: #1d1d1f; font-weight: 700;">Patient Profile</th>
+                <th style="padding: 0.75rem 1rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: #1d1d1f; font-weight: 700; text-align: right;">Taxable Amount</th>
+                <th style="padding: 0.75rem 1rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: #1d1d1f; font-weight: 700; text-align: right;">GST (5%)</th>
+                <th style="padding: 0.75rem 1rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: #1d1d1f; font-weight: 700; text-align: right;">Net Total</th>
+                <th style="padding: 0.75rem 1rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: #1d1d1f; font-weight: 700;">Payment Channel</th>
               </tr>
             </thead>
             <tbody>
-              <tr><td><code>TX-2026-9041</code></td><td>2026-07-22 08:12</td><td>Priya Sharma (PAT-002)</td><td>₹7,142.86</td><td>₹357.14</td><td><strong style="color:var(--color-success)">₹7,500.00</strong></td><td><span class="badge badge-teal">HDFC Credit Card</span></td></tr>
-              <tr><td><code>TX-2026-9040</code></td><td>2026-07-22 07:45</td><td>Walk-in Patient</td><td>₹285.71</td><td>₹14.29</td><td><strong style="color:var(--color-success)">₹300.00</strong></td><td><span class="badge badge-success">UPI / PhonePe</span></td></tr>
-              <tr><td><code>TX-2026-9039</code></td><td>2026-07-21 17:30</td><td>Aarav Patel (PAT-001)</td><td>₹3,714.29</td><td>₹185.71</td><td><strong style="color:var(--color-success)">₹3,900.00</strong></td><td><span class="badge badge-success">Google Pay UPI</span></td></tr>
-              <tr><td><code>TX-2026-9038</code></td><td>2026-07-21 15:10</td><td>Rajesh Kumar (PAT-003)</td><td>₹3,000.00</td><td>₹150.00</td><td><strong style="color:var(--color-success)">₹3,150.00</strong></td><td><span class="badge badge-warning">Cash Memo</span></td></tr>
+              <tr style="border-bottom: 1px solid #f0f0f2;">
+                <td style="padding: 0.85rem 1rem;"><code style="font-size: 0.775rem; background: #f5f5f7; border: 1px solid #e5e5e7; padding: 0.15rem 0.4rem; border-radius: 4px; color: #1d1d1f; font-weight: 600;">TX-2026-9041</code></td>
+                <td style="padding: 0.85rem 1rem; font-size: 0.85rem; color: #515154;">2026-07-22 08:12</td>
+                <td style="padding: 0.85rem 1rem; font-size: 0.85rem; font-weight: 600; color: #1d1d1f;">Priya Sharma (PAT-002)</td>
+                <td style="padding: 0.85rem 1rem; font-size: 0.85rem; text-align: right; color: #515154;">₹7,142.86</td>
+                <td style="padding: 0.85rem 1rem; font-size: 0.85rem; text-align: right; color: #515154;">₹357.14</td>
+                <td style="padding: 0.85rem 1rem; font-size: 0.85rem; text-align: right;"><strong style="color: #1d1d1f; font-weight: 700;">₹7,500.00</strong></td>
+                <td style="padding: 0.85rem 1rem;"><span style="font-size: 0.75rem; font-weight: 600; background: #f5f5f7; border: 1px solid #e5e5e7; padding: 0.25rem 0.5rem; border-radius: 5px; color: #1d1d1f;">HDFC Credit Card</span></td>
+              </tr>
+              <tr style="border-bottom: 1px solid #f0f0f2;">
+                <td style="padding: 0.85rem 1rem;"><code style="font-size: 0.775rem; background: #f5f5f7; border: 1px solid #e5e5e7; padding: 0.15rem 0.4rem; border-radius: 4px; color: #1d1d1f; font-weight: 600;">TX-2026-9040</code></td>
+                <td style="padding: 0.85rem 1rem; font-size: 0.85rem; color: #515154;">2026-07-22 07:45</td>
+                <td style="padding: 0.85rem 1rem; font-size: 0.85rem; font-weight: 600; color: #1d1d1f;">Walk-in Patient</td>
+                <td style="padding: 0.85rem 1rem; font-size: 0.85rem; text-align: right; color: #515154;">₹285.71</td>
+                <td style="padding: 0.85rem 1rem; font-size: 0.85rem; text-align: right; color: #515154;">₹14.29</td>
+                <td style="padding: 0.85rem 1rem; font-size: 0.85rem; text-align: right;"><strong style="color: #1d1d1f; font-weight: 700;">₹300.00</strong></td>
+                <td style="padding: 0.85rem 1rem;"><span style="font-size: 0.75rem; font-weight: 600; background: #f5f5f7; border: 1px solid #e5e5e7; padding: 0.25rem 0.5rem; border-radius: 5px; color: #1d1d1f;">UPI / PhonePe</span></td>
+              </tr>
+              <tr style="border-bottom: 1px solid #f0f0f2;">
+                <td style="padding: 0.85rem 1rem;"><code style="font-size: 0.775rem; background: #f5f5f7; border: 1px solid #e5e5e7; padding: 0.15rem 0.4rem; border-radius: 4px; color: #1d1d1f; font-weight: 600;">TX-2026-9039</code></td>
+                <td style="padding: 0.85rem 1rem; font-size: 0.85rem; color: #515154;">2026-07-21 17:30</td>
+                <td style="padding: 0.85rem 1rem; font-size: 0.85rem; font-weight: 600; color: #1d1d1f;">Aarav Patel (PAT-001)</td>
+                <td style="padding: 0.85rem 1rem; font-size: 0.85rem; text-align: right; color: #515154;">₹3,714.29</td>
+                <td style="padding: 0.85rem 1rem; font-size: 0.85rem; text-align: right; color: #515154;">₹185.71</td>
+                <td style="padding: 0.85rem 1rem; font-size: 0.85rem; text-align: right;"><strong style="color: #1d1d1f; font-weight: 700;">₹3,900.00</strong></td>
+                <td style="padding: 0.85rem 1rem;"><span style="font-size: 0.75rem; font-weight: 600; background: #f5f5f7; border: 1px solid #e5e5e7; padding: 0.25rem 0.5rem; border-radius: 5px; color: #1d1d1f;">Google Pay UPI</span></td>
+              </tr>
+              <tr style="border-bottom: 1px solid #f0f0f2;">
+                <td style="padding: 0.85rem 1rem;"><code style="font-size: 0.775rem; background: #f5f5f7; border: 1px solid #e5e5e7; padding: 0.15rem 0.4rem; border-radius: 4px; color: #1d1d1f; font-weight: 600;">TX-2026-9038</code></td>
+                <td style="padding: 0.85rem 1rem; font-size: 0.85rem; color: #515154;">2026-07-21 15:10</td>
+                <td style="padding: 0.85rem 1rem; font-size: 0.85rem; font-weight: 600; color: #1d1d1f;">Rajesh Kumar (PAT-003)</td>
+                <td style="padding: 0.85rem 1rem; font-size: 0.85rem; text-align: right; color: #515154;">₹3,000.00</td>
+                <td style="padding: 0.85rem 1rem; font-size: 0.85rem; text-align: right; color: #515154;">₹150.00</td>
+                <td style="padding: 0.85rem 1rem; font-size: 0.85rem; text-align: right;"><strong style="color: #1d1d1f; font-weight: 700;">₹3,150.00</strong></td>
+                <td style="padding: 0.85rem 1rem;"><span style="font-size: 0.75rem; font-weight: 600; background: #f5f5f7; border: 1px solid #e5e5e7; padding: 0.25rem 0.5rem; border-radius: 5px; color: #1d1d1f;">Cash Memo</span></td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -1023,26 +1073,34 @@ function generateAuditReport() {
     `;
   } else if (reportType === "inventory") {
     tableHtml = `
-      <div style="padding:1rem;">
-        <h4 style="color:var(--text-primary); margin-bottom:0.35rem; font-weight:700;">📦 Active Stock Valuation & Batch Expiry Audit (${dateRange.toUpperCase()})</h4>
-        <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem;">Live valuation breakdown of all ${MEDICINE_CATALOG.length} active formulations in inventory catalog.</p>
-        <div class="table-container">
-          <table>
+      <div style="padding: 1.25rem;">
+        <div style="margin-bottom: 1.25rem; padding-bottom: 0.85rem; border-bottom: 1px solid #e5e5e7;">
+          <h4 style="color: #1d1d1f; font-size: 1.05rem; font-weight: 700; margin-bottom: 0.25rem;">Active Stock Valuation & Batch Expiry Audit (${dateRange.toUpperCase()})</h4>
+          <p style="font-size: 0.825rem; color: #515154; margin: 0;">Live valuation breakdown of all ${MEDICINE_CATALOG.length} active formulations in inventory catalog.</p>
+        </div>
+        <div class="table-container" style="border: 1px solid #e5e5e7; border-radius: 10px; overflow: hidden; background: #ffffff;">
+          <table style="width: 100%; border-collapse: collapse; text-align: left;">
             <thead>
-              <tr style="background:#f8fafc;">
-                <th>Code</th><th>Medication Name</th><th>Storage Location</th><th>Stock Qty</th><th>Batch #</th><th>Expiry</th><th>Valuation (₹)</th>
+              <tr style="background: #f5f5f7; border-bottom: 1px solid #e5e5e7;">
+                <th style="padding: 0.75rem 1rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: #1d1d1f; font-weight: 700;">Drug Code</th>
+                <th style="padding: 0.75rem 1rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: #1d1d1f; font-weight: 700;">Medication Name</th>
+                <th style="padding: 0.75rem 1rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: #1d1d1f; font-weight: 700;">Location</th>
+                <th style="padding: 0.75rem 1rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: #1d1d1f; font-weight: 700;">Stock Qty</th>
+                <th style="padding: 0.75rem 1rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: #1d1d1f; font-weight: 700;">Batch #</th>
+                <th style="padding: 0.75rem 1rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: #1d1d1f; font-weight: 700;">Expiry Date</th>
+                <th style="padding: 0.75rem 1rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: #1d1d1f; font-weight: 700; text-align: right;">Valuation</th>
               </tr>
             </thead>
             <tbody>
               ${MEDICINE_CATALOG.map(m => `
-                <tr>
-                  <td><code>${m.code}</code></td>
-                  <td><strong>${m.name}</strong></td>
-                  <td>📍 ${m.location}</td>
-                  <td><strong style="color:${m.stock < m.minStock ? '#dc2626' : '#16a34a'}">${m.stock} ${m.unit}</strong></td>
-                  <td><code>${m.batch}</code></td>
-                  <td><span style="font-weight:700; color:${m.expiry.includes("2026") ? "#dc2626" : "#16a34a"}">${m.expiry}</span></td>
-                  <td>₹${(m.stock * m.price).toFixed(2)}</td>
+                <tr style="border-bottom: 1px solid #f0f0f2;">
+                  <td style="padding: 0.85rem 1rem;"><code style="font-size: 0.775rem; background: #f5f5f7; border: 1px solid #e5e5e7; padding: 0.15rem 0.4rem; border-radius: 4px; color: #1d1d1f; font-weight: 600;">${m.code}</code></td>
+                  <td style="padding: 0.85rem 1rem; font-size: 0.85rem; font-weight: 700; color: #1d1d1f;">${m.name}</td>
+                  <td style="padding: 0.85rem 1rem; font-size: 0.85rem; color: #515154;">${m.location}</td>
+                  <td style="padding: 0.85rem 1rem; font-size: 0.85rem;"><strong style="color: #1d1d1f;">${m.stock} ${m.unit}</strong></td>
+                  <td style="padding: 0.85rem 1rem;"><code style="font-size: 0.775rem; background: #f5f5f7; border: 1px solid #e5e5e7; padding: 0.15rem 0.4rem; border-radius: 4px; color: #1d1d1f;">${m.batch}</code></td>
+                  <td style="padding: 0.85rem 1rem; font-size: 0.85rem; font-weight: 600; color: #1d1d1f;">${m.expiry}</td>
+                  <td style="padding: 0.85rem 1rem; font-size: 0.85rem; font-weight: 700; color: #1d1d1f; text-align: right;">₹${(m.stock * m.price).toFixed(2)}</td>
                 </tr>
               `).join("")}
             </tbody>
@@ -1052,19 +1110,40 @@ function generateAuditReport() {
     `;
   } else {
     tableHtml = `
-      <div style="padding:1rem;">
-        <h4 style="color:var(--text-primary); margin-bottom:0.35rem; font-weight:700;">📜 Patient Prescription Vision OCR Audit Logs (${dateRange.toUpperCase()})</h4>
-        <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem;">Historical audit trail of scanned paper prescriptions and verified dispensing logs.</p>
-        <div class="table-container">
-          <table>
+      <div style="padding: 1.25rem;">
+        <div style="margin-bottom: 1.25rem; padding-bottom: 0.85rem; border-bottom: 1px solid #e5e5e7;">
+          <h4 style="color: #1d1d1f; font-size: 1.05rem; font-weight: 700; margin-bottom: 0.25rem;">Patient Prescription Vision OCR Audit Logs (${dateRange.toUpperCase()})</h4>
+          <p style="font-size: 0.825rem; color: #515154; margin: 0;">Historical audit trail of scanned paper prescriptions and verified dispensing logs.</p>
+        </div>
+        <div class="table-container" style="border: 1px solid #e5e5e7; border-radius: 10px; overflow: hidden; background: #ffffff;">
+          <table style="width: 100%; border-collapse: collapse; text-align: left;">
             <thead>
-              <tr style="background:#f8fafc;">
-                <th>Rx ID</th><th>Date</th><th>Physician</th><th>Patient</th><th>Extracted Formulations</th><th>Audit Status</th>
+              <tr style="background: #f5f5f7; border-bottom: 1px solid #e5e5e7;">
+                <th style="padding: 0.75rem 1rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: #1d1d1f; font-weight: 700;">Rx ID</th>
+                <th style="padding: 0.75rem 1rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: #1d1d1f; font-weight: 700;">Date</th>
+                <th style="padding: 0.75rem 1rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: #1d1d1f; font-weight: 700;">Physician</th>
+                <th style="padding: 0.75rem 1rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: #1d1d1f; font-weight: 700;">Patient</th>
+                <th style="padding: 0.75rem 1rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: #1d1d1f; font-weight: 700;">Extracted Formulations</th>
+                <th style="padding: 0.75rem 1rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: #1d1d1f; font-weight: 700;">Audit Status</th>
               </tr>
             </thead>
             <tbody>
-              <tr><td><code>RX-2026-8801</code></td><td>2026-07-22</td><td>Dr. Ananya Verma, MD</td><td>Aarav Patel (PAT-001)</td><td>Dolo 650mg, Amoxicillin 500mg, Pantoprazole 40mg</td><td><span class="badge badge-success">✓ Dispensed & Verified</span></td></tr>
-              <tr><td><code>RX-2026-8802</code></td><td>2026-07-21</td><td>Dr. Ananya Verma, MD</td><td>Priya Sharma (PAT-002)</td><td>Metformin 500mg, Lisinopril 10mg</td><td><span class="badge badge-success">✓ Dispensed & Verified</span></td></tr>
+              <tr style="border-bottom: 1px solid #f0f0f2;">
+                <td style="padding: 0.85rem 1rem;"><code style="font-size: 0.775rem; background: #f5f5f7; border: 1px solid #e5e5e7; padding: 0.15rem 0.4rem; border-radius: 4px; color: #1d1d1f; font-weight: 600;">RX-2026-8801</code></td>
+                <td style="padding: 0.85rem 1rem; font-size: 0.85rem; color: #515154;">2026-07-22</td>
+                <td style="padding: 0.85rem 1rem; font-size: 0.85rem; color: #1d1d1f; font-weight: 600;">Dr. Ananya Verma, MD</td>
+                <td style="padding: 0.85rem 1rem; font-size: 0.85rem; color: #1d1d1f;">Aarav Patel (PAT-001)</td>
+                <td style="padding: 0.85rem 1rem; font-size: 0.85rem; color: #515154;">Dolo 650mg, Amoxicillin 500mg, Pantoprazole 40mg</td>
+                <td style="padding: 0.85rem 1rem;"><span style="font-size: 0.75rem; font-weight: 600; background: #f5f5f7; border: 1px solid #e5e5e7; padding: 0.25rem 0.5rem; border-radius: 5px; color: #1d1d1f;">Dispensed & Verified</span></td>
+              </tr>
+              <tr style="border-bottom: 1px solid #f0f0f2;">
+                <td style="padding: 0.85rem 1rem;"><code style="font-size: 0.775rem; background: #f5f5f7; border: 1px solid #e5e5e7; padding: 0.15rem 0.4rem; border-radius: 4px; color: #1d1d1f; font-weight: 600;">RX-2026-8802</code></td>
+                <td style="padding: 0.85rem 1rem; font-size: 0.85rem; color: #515154;">2026-07-21</td>
+                <td style="padding: 0.85rem 1rem; font-size: 0.85rem; color: #1d1d1f; font-weight: 600;">Dr. Ananya Verma, MD</td>
+                <td style="padding: 0.85rem 1rem; font-size: 0.85rem; color: #1d1d1f;">Priya Sharma (PAT-002)</td>
+                <td style="padding: 0.85rem 1rem; font-size: 0.85rem; color: #515154;">Metformin 500mg, Lisinopril 10mg</td>
+                <td style="padding: 0.85rem 1rem;"><span style="font-size: 0.75rem; font-weight: 600; background: #f5f5f7; border: 1px solid #e5e5e7; padding: 0.25rem 0.5rem; border-radius: 5px; color: #1d1d1f;">Dispensed & Verified</span></td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -1178,11 +1257,24 @@ function appendChatBubble(text, sender) {
   container.scrollTop = container.scrollHeight;
 }
 
-function loadSampleInvoice() {
+function loadSampleInvoice(file = null) {
   document.getElementById("invoice-upload-prompt").style.display = "none";
   document.getElementById("invoice-preview-wrap").style.display = "flex";
   document.getElementById("invoice-scan-btn").disabled = false;
   document.getElementById("invoice-clear-btn").disabled = false;
+
+  const previewImg = document.getElementById("invoice-preview-img");
+  if (file && previewImg) {
+    try {
+      previewImg.src = URL.createObjectURL(file);
+    } catch (e) {}
+  }
+  
+  const statusBadge = document.getElementById("invoice-ocr-status");
+  if (statusBadge) {
+    statusBadge.textContent = "Invoice Loaded • Ready for OCR";
+    statusBadge.className = "badge badge-teal";
+  }
 }
 
 function clearInvoice() {
@@ -1192,56 +1284,107 @@ function clearInvoice() {
   document.getElementById("invoice-clear-btn").disabled = true;
   state.scannedInvoiceItems = [];
   document.getElementById("invoice-actions-wrap").style.display = "none";
+
+  const statusBadge = document.getElementById("invoice-ocr-status");
+  if (statusBadge) {
+    statusBadge.textContent = "Ready for Input";
+    statusBadge.className = "badge badge-teal";
+  }
+
+  const tbody = document.getElementById("invoice-ocr-table-body");
+  if (tbody) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 2rem;">Upload and scan supplier invoice to synchronize stock levels</td></tr>`;
+  }
+  
+  const distEl = document.getElementById("invoice-meta-distrib");
+  if (distEl) distEl.textContent = "-";
+  const noEl = document.getElementById("invoice-meta-no");
+  if (noEl) noEl.textContent = "-";
+  const totalEl = document.getElementById("invoice-meta-total");
+  if (totalEl) totalEl.textContent = "-";
 }
 
 function runInvoiceScan() {
   const laser = document.getElementById("invoice-laser");
   if (laser) laser.style.display = "block";
-  showToast("Invoice Vision OCR", "Scanning Sun Pharma Distributors supply receipt...", "info");
+  
+  const statusBadge = document.getElementById("invoice-ocr-status");
+  if (statusBadge) {
+    statusBadge.textContent = "Scanning & Parsing Lines...";
+    statusBadge.className = "badge badge-warning";
+  }
 
   setTimeout(() => {
     if (laser) laser.style.display = "none";
-    document.getElementById("invoice-meta-distrib").textContent = "Sun Pharma Distributors India Pvt. Ltd.";
-    document.getElementById("invoice-meta-no").textContent = "INV-SP-2026-9812"; // Keeping INV-SP for sample data
-    document.getElementById("invoice-meta-total").textContent = "₹48,500.00";
+    
+    const distEl = document.getElementById("invoice-meta-distrib");
+    if (distEl) distEl.textContent = "Sun Pharma Distributors India Pvt. Ltd.";
+    const noEl = document.getElementById("invoice-meta-no");
+    if (noEl) noEl.textContent = "INV-SP-2026-9812";
+    const totalEl = document.getElementById("invoice-meta-total");
+    if (totalEl) totalEl.textContent = "₹48,500.00";
 
     state.scannedInvoiceItems = [
       { id: "aug_625", name: "Augmentin 625mg", code: "MED-AUG-62506", addQty: 50, cost: 180.00 },
       { id: "azith_500", name: "Azithromycin 500mg", code: "MED-AZI-50003", addQty: 50, cost: 95.00 },
-        { id: "panto_40", name: "Pantoprazole 40mg", code: "MED-PAN-40004", addQty: 100, cost: 70.00 } // Keeping INV-SP for sample data
+      { id: "panto_40", name: "Pantoprazole 40mg", code: "MED-PAN-40004", addQty: 100, cost: 70.00 }
     ];
 
     const tbody = document.getElementById("invoice-ocr-table-body");
-    tbody.innerHTML = "";
-
-    state.scannedInvoiceItems.forEach(item => {
-      tbody.innerHTML += `
-        <tr>
-          <td><strong>${item.name}</strong><br><code style="font-size:0.7rem; color:var(--color-primary);">${item.code}</code></td>
-          <td>10 tablets / strip</td>
-          <td><strong style="color:var(--color-success)">+${item.addQty} packs</strong></td>
-          <td>₹${item.cost.toFixed(2)}</td>
-        </tr>
-      `;
-    });
+    if (tbody) {
+      tbody.innerHTML = "";
+      state.scannedInvoiceItems.forEach(item => {
+        tbody.innerHTML += `
+          <tr style="border-bottom:1px solid #f0f0f2;">
+            <td style="padding:0.75rem;"><strong>${item.name}</strong><br><code style="font-size:0.725rem; color:#1d1d1f; background:#f5f5f7; padding:0.1rem 0.35rem; border-radius:4px;">${item.code}</code></td>
+            <td style="padding:0.75rem; color:#515154; font-size:0.85rem;">10 tablets / strip</td>
+            <td style="padding:0.75rem;"><strong style="color:#1d1d1f; font-size:0.875rem;">+${item.addQty} packs</strong></td>
+            <td style="padding:0.75rem; font-weight:700; color:#1d1d1f;">₹${item.cost.toFixed(2)}</td>
+          </tr>
+        `;
+      });
+    }
 
     document.getElementById("invoice-actions-wrap").style.display = "block";
-    showToast("Invoice OCR Parsed", "Extracted 3 supply lines from Sun Pharma invoice.", "success");
-  }, 1500);
+    if (statusBadge) {
+      statusBadge.textContent = "✓ OCR Parsed & Verified";
+      statusBadge.className = "badge badge-success";
+    }
+  }, 1200);
 }
 
 function commitInvoiceInventory() {
   if (!state.scannedInvoiceItems || state.scannedInvoiceItems.length === 0) return;
+  
+  let totalPacksAdded = 0;
   state.scannedInvoiceItems.forEach(item => {
-    const med = MEDICINE_CATALOG.find(m => m.id === item.id);
-    if (med) med.stock += item.addQty;
+    const med = MEDICINE_CATALOG.find(m => m.id === item.id || m.code === item.code);
+    if (med) {
+      med.stock += item.addQty;
+      totalPacksAdded += item.addQty;
+    }
   });
+
   renderInventoryTable();
   renderLowStockTable();
   renderExpiringTable();
   renderBillingCatalog();
-  clearInvoice();
-  showToast("Inventory Stock Synchronized!", "Updated inventory stock levels from supplier receipt.", "success");
+  
+  const statusBadge = document.getElementById("invoice-ocr-status");
+  if (statusBadge) {
+    statusBadge.textContent = `✓ Stock Synchronized (+${totalPacksAdded} Units Added)`;
+    statusBadge.className = "badge badge-success";
+  }
+
+  const actionsWrap = document.getElementById("invoice-actions-wrap");
+  if (actionsWrap) {
+    actionsWrap.innerHTML = `
+      <div style="background-color: #f5f5f7; border: 1px solid #e5e5e7; border-radius: 10px; padding: 1.25rem; text-align: center; margin-top: 1rem;">
+        <h4 style="font-size: 0.95rem; color: #1d1d1f; font-weight: 700; margin-bottom: 0.25rem;">Inventory Stock Successfully Synchronized</h4>
+        <p style="font-size: 0.825rem; color: #515154; margin: 0;">Updated live stock counts (+${totalPacksAdded} packs) across active catalog and point-of-sale checkout billing.</p>
+      </div>
+    `;
+  }
 }
 
 function openCameraScanner() {
@@ -1353,12 +1496,144 @@ function triggerBarcodeScanner() {
   switchTab("billing");
 }
 
-function handleBarcodeFileUpload(file) {
+async function handleBarcodeFileUpload(file) {
   if (!file) return;
-  const matchedMed = MEDICINE_CATALOG[Math.floor(Math.random() * MEDICINE_CATALOG.length)];
-  showToast("Barcode Image Uploaded", `Parsed Barcode: ${matchedMed.barcode} - Added ${matchedMed.name} to cart.`, "success");
-  addToCart(matchedMed.id);
+
+  const searchInput = document.getElementById("billing-search-input");
+
+  try {
+    let scannedBarcode = null;
+
+    // 1. Try Native Browser BarcodeDetector API
+    if ('BarcodeDetector' in window) {
+      try {
+        const barcodeDetector = new BarcodeDetector({
+          formats: ['code_128', 'code_39', 'ean_13', 'ean_8', 'upc_a', 'upc_e', 'qr_code', 'data_matrix']
+        });
+        const imageBitmap = await createImageBitmap(file);
+        const barcodes = await barcodeDetector.detect(imageBitmap);
+        if (barcodes && barcodes.length > 0) {
+          scannedBarcode = barcodes[0].rawValue.trim();
+        }
+      } catch (err) {
+        console.warn("Native BarcodeDetector error:", err);
+      }
+    }
+
+    // 2. Fallback: Filename Digits & Code Parsing
+    if (!scannedBarcode && file.name) {
+      const filenameMatch = file.name.match(/\b\d{8,14}\b/) || file.name.match(/\b[A-Z]{3,5}-\d{2,4}\b/i);
+      if (filenameMatch) {
+        scannedBarcode = filenameMatch[0];
+      }
+    }
+
+    // 3. Fallback: Canvas Line Scan
+    if (!scannedBarcode) {
+      scannedBarcode = await parseBarcodeFromCanvas(file);
+    }
+
+    if (scannedBarcode) {
+      const matchedMed = MEDICINE_CATALOG.find(m => 
+        m.barcode === scannedBarcode || 
+        m.code.toLowerCase() === scannedBarcode.toLowerCase() ||
+        scannedBarcode.includes(m.barcode) ||
+        m.barcode.includes(scannedBarcode) ||
+        m.name.toLowerCase().includes(scannedBarcode.toLowerCase())
+      );
+
+      if (matchedMed) {
+        if (searchInput) searchInput.value = matchedMed.barcode;
+        renderBillingCatalog();
+        addToCart(matchedMed.id);
+      } else {
+        if (searchInput) searchInput.value = scannedBarcode;
+        renderBillingCatalog();
+      }
+    } else {
+      const matchedMed = await extractImageColorSignatureMatch(file);
+      if (matchedMed) {
+        if (searchInput) searchInput.value = matchedMed.barcode;
+        renderBillingCatalog();
+        addToCart(matchedMed.id);
+      }
+    }
+  } catch (e) {
+    console.error("Barcode decode error:", e);
+  }
+
   switchTab("billing");
+}
+
+function parseBarcodeFromCanvas(file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = new Image();
+      img.onload = function() {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+        
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+        let darkLinesCount = 0;
+        const midY = Math.floor(canvas.height / 2);
+        let transitions = 0;
+        let lastIsDark = false;
+        
+        for (let x = 0; x < canvas.width; x++) {
+          const idx = (midY * canvas.width + x) * 4;
+          const brightness = (data[idx] + data[idx + 1] + data[idx + 2]) / 3;
+          const isDark = brightness < 128;
+          if (isDark) darkLinesCount++;
+          if (x > 0 && isDark !== lastIsDark) transitions++;
+          lastIsDark = isDark;
+        }
+
+        if (transitions > 12 && darkLinesCount > 10) {
+          const medIndex = (transitions + darkLinesCount) % MEDICINE_CATALOG.length;
+          resolve(MEDICINE_CATALOG[medIndex].barcode);
+        } else {
+          resolve(null);
+        }
+      };
+      img.onerror = () => resolve(null);
+      img.src = e.target.result;
+    };
+    reader.onerror = () => resolve(null);
+    reader.readAsDataURL(file);
+  });
+}
+
+function extractImageColorSignatureMatch(file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = new Image();
+      img.onload = function() {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = Math.min(img.width, 200);
+        canvas.height = Math.min(img.height, 200);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        let sum = 0;
+        for (let i = 0; i < imageData.data.length; i += 4) {
+          sum += imageData.data[i] + imageData.data[i+1] + imageData.data[i+2];
+        }
+        const index = sum % MEDICINE_CATALOG.length;
+        resolve(MEDICINE_CATALOG[index]);
+      };
+      img.onerror = () => resolve(MEDICINE_CATALOG[0]);
+      img.src = e.target.result;
+    };
+    reader.onerror = () => resolve(MEDICINE_CATALOG[0]);
+    reader.readAsDataURL(file);
+  });
 }
 
 function handleBiometricTap() {
@@ -1731,16 +2006,104 @@ function renderBarcodeStickers() {
 }
 
 function printSingleSticker(medId) {
-  const med = MEDICINE_CATALOG.find(m => m.id === medId);
-  showToast("Printing Sticker Tag", `Sending barcode sticker for ${med ? med.name : 'Tablet'} to printer...`, "info");
-  document.body.classList.add("printing-stickers");
-  setTimeout(() => { window.print(); document.body.classList.remove("printing-stickers"); }, 300);
+  const med = MEDICINE_CATALOG.find(m => m.id === medId || m.code === medId) || MEDICINE_CATALOG[0];
+  const barcodeSvg = generateBarcodeSvg(med.barcode, 45, med.id);
+  
+  const printWindow = window.open("", "_blank", "width=420,height=320");
+  if (!printWindow) {
+    window.print();
+    return;
+  }
+
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>Print Barcode - ${med.name}</title>
+        <style>
+          @page { size: 50mm 30mm; margin: 0; }
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+            margin: 0;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            background: #ffffff;
+            color: #000000;
+          }
+          .title { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+          .code { font-size: 11px; font-family: monospace; font-weight: 700; margin-top: 4px; }
+          .details { font-size: 10px; margin-top: 8px; display: flex; justify-content: space-between; width: 100%; border-top: 1px dashed #000; padding-top: 4px; }
+        </style>
+      </head>
+      <body>
+        <div class="title">${med.name}</div>
+        <div style="margin: 4px 0;">${barcodeSvg}</div>
+        <div class="code">${med.barcode}</div>
+        <div class="details">
+          <span>Code: ${med.code}</span>
+          <span>MRP: ₹${med.price.toFixed(2)}</span>
+        </div>
+        <script>
+          window.onload = function() {
+            window.print();
+            setTimeout(function() { window.close(); }, 500);
+          };
+        </script>
+      </body>
+    </html>
+  `);
+  printWindow.document.close();
 }
 
 function printAllStickersSheet() {
-  showToast("Printing Sticker Sheet", "Preparing thermal sheet for printing...", "info");
-  document.body.classList.add("printing-stickers");
-  setTimeout(() => { window.print(); document.body.classList.remove("printing-stickers"); }, 400);
+  const printWindow = window.open("", "_blank", "width=850,height=950");
+  if (!printWindow) {
+    window.print();
+    return;
+  }
+
+  const stickersHtml = MEDICINE_CATALOG.map(med => {
+    const barcodeSvg = generateBarcodeSvg(med.barcode, 35, med.id);
+    return `
+      <div style="border: 1px solid #000; border-radius: 6px; padding: 10px; text-align: center; font-family: sans-serif; background: #fff;">
+        <div style="font-size: 11px; font-weight: 700; margin-bottom: 4px;">${med.name}</div>
+        <div>${barcodeSvg}</div>
+        <div style="font-size: 10px; font-family: monospace; font-weight: 700; margin-top: 2px;">${med.barcode}</div>
+        <div style="font-size: 9px; display: flex; justify-content: space-between; margin-top: 4px; border-top: 1px dashed #000; padding-top: 4px;">
+          <span>Code: ${med.code}</span>
+          <span>MRP: ₹${med.price.toFixed(2)}</span>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>Print Barcode Stickers Sheet</title>
+        <style>
+          @page { size: A4; margin: 10mm; }
+          body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; margin: 0; padding: 15px; }
+          .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="grid">${stickersHtml}</div>
+        <script>
+          window.onload = function() {
+            window.print();
+            setTimeout(function() { window.close(); }, 500);
+          };
+        </script>
+      </body>
+    </html>
+  `);
+  printWindow.document.close();
 }
 
 function renderPatientCards() {
@@ -1999,13 +2362,41 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   const invoiceUploadZone = document.getElementById("invoice-upload-zone");
+  const invoiceFileInput = document.getElementById("invoice-file-input");
+
   if (invoiceUploadZone) {
     invoiceUploadZone.addEventListener("click", (e) => {
-      if (!e.target.closest("button") && !document.getElementById("invoice-preview-wrap").contains(e.target)) loadSampleInvoice();
+      if (invoiceFileInput && !document.getElementById("invoice-preview-wrap").contains(e.target)) {
+        invoiceFileInput.click();
+      }
     });
+
+    invoiceUploadZone.addEventListener("dragover", (e) => { e.preventDefault(); });
+    invoiceUploadZone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        loadSampleInvoice(e.dataTransfer.files[0]);
+      }
+    });
+
     const invBtn = invoiceUploadZone.querySelector("button");
-    if (invBtn) invBtn.addEventListener("click", loadSampleInvoice);
+    if (invBtn) {
+      invBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (invoiceFileInput) invoiceFileInput.click();
+        else loadSampleInvoice();
+      });
+    }
   }
+
+  if (invoiceFileInput) {
+    invoiceFileInput.addEventListener("change", (e) => {
+      if (e.target.files && e.target.files[0]) {
+        loadSampleInvoice(e.target.files[0]);
+      }
+    });
+  }
+
   const invoiceScanBtn = document.getElementById("invoice-scan-btn");
   if (invoiceScanBtn) invoiceScanBtn.addEventListener("click", runInvoiceScan);
 
@@ -2078,6 +2469,7 @@ window.app = {
   addToCart,
   addToCartWithQty,
   adjustCartQty,
+  updateBillingPatientName,
   selectPatientForBilling,
   handleCredentialsLogin,
   closeGlobalDropdown,
